@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "VPay",
+    "slug": "vpay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#6C63FF"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.vachanpay.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "VPay needs microphone access to process voice payment commands.",
+        "NSContactsUsageDescription": "VPay needs contacts access to find payment recipients."
+      }
+    },
+    "android": {
+      "package": "com.vachanpay.app",
+      "permissions": ["RECORD_AUDIO", "READ_CONTACTS"]
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "VPay needs your microphone to process voice payments."
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "VPay needs your contacts to find payment recipients."
+        }
+      ]
+    ]
+  }
+}

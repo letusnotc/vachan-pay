@@ -1,0 +1,81 @@
+{
+  "login": {
+    "title": "VPay में आपका स्वागत है",
+    "subtitle": "वॉइस से भुगतान करें",
+    "phonePlaceholder": "फ़ोन नंबर (10 अंक)",
+    "sendOtp": "OTP भेजें",
+    "sending": "भेज रहे हैं...",
+    "errorEmpty": "कृपया फ़ोन नंबर दर्ज करें",
+    "errorInvalid": "वैध 10-अंकीय नंबर दर्ज करें"
+  },
+  "otp": {
+    "title": "OTP दर्ज करें",
+    "subtitle": "{{phone}} पर भेजा गया",
+    "placeholder": "6-अंकीय OTP",
+    "verify": "सत्यापित करें",
+    "verifying": "सत्यापित हो रहा है...",
+    "resend": "OTP दोबारा भेजें",
+    "resendIn": "{{sec}} सेकंड में दोबारा भेजें"
+  },
+  "profileSetup": {
+    "title": "प्रोफ़ाइल बनाएं",
+    "namePlaceholder": "पूरा नाम",
+    "emailPlaceholder": "ईमेल (वैकल्पिक)",
+    "save": "जारी रखें",
+    "saving": "सहेज रहे हैं..."
+  },
+  "home": {
+    "greeting": "नमस्ते, {{name}}",
+    "balance": "वॉलेट बैलेंस",
+    "tapToSpeak": "बोलने के लिए माइक दबाएं",
+    "listening": "सुन रहा हूं...",
+    "processing": "प्रोसेस हो रहा है...",
+    "pay": "भुगतान",
+    "history": "इतिहास",
+    "profile": "प्रोफ़ाइल"
+  },
+  "payment": {
+    "title": "भुगतान की पुष्टि करें",
+    "to": "प्राप्तकर्ता",
+    "amount": "राशि",
+    "confirm": "पुष्टि करें",
+    "cancel": "रद्द करें",
+    "sending": "भेज रहे हैं...",
+    "success": "₹{{amount}} {{name}} को भेजा गया!",
+    "selectRecipient": "प्राप्तकर्ता चुनें",
+    "receiverPhone": "प्राप्तकर्ता का फ़ोन",
+    "amountLabel": "राशि (₹)"
+  },
+  "balance": {
+    "title": "आपका बैलेंस",
+    "available": "उपलब्ध बैलेंस",
+    "addMoney": "पैसे जोड़ें"
+  },
+  "history": {
+    "title": "लेनदेन",
+    "empty": "अभी तक कोई लेनदेन नहीं",
+    "sent": "भेजा",
+    "received": "प्राप्त"
+  },
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "language": "भाषा",
+    "signOut": "साइन आउट",
+    "phone": "फ़ोन"
+  },
+  "voice": {
+    "listening": "मैं सुन रहा हूं...",
+    "balance": "आपका बैलेंस ₹{{amount}} है",
+    "confirmPayment": "{{name}} को ₹{{amount}} भेज रहे हैं। पुष्टि करने के लिए Confirm दबाएं।",
+    "contactNotFound": "{{name}} आपके संपर्क में नहीं मिला।",
+    "contactsPermissionDenied": "संपर्क की अनुमति नहीं दी गई।",
+    "unknown": "माफ़ करें, मैं समझ नहीं पाया। कृपया दोबारा बोलें।",
+    "error": "कुछ गलत हो गया। कृपया दोबारा प्रयास करें।"
+  },
+  "common": {
+    "back": "वापस",
+    "error": "त्रुटि",
+    "ok": "ठीक है",
+    "loading": "लोड हो रहा है..."
+  }
+}

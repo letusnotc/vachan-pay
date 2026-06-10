@@ -1,0 +1,81 @@
+{
+  "login": {
+    "title": "Welcome to VPay",
+    "subtitle": "Voice-powered payments",
+    "phonePlaceholder": "Phone number (10 digits)",
+    "sendOtp": "Send OTP",
+    "sending": "Sending...",
+    "errorEmpty": "Please enter your phone number",
+    "errorInvalid": "Enter a valid 10-digit number"
+  },
+  "otp": {
+    "title": "Enter OTP",
+    "subtitle": "Sent to {{phone}}",
+    "placeholder": "6-digit OTP",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "resend": "Resend OTP",
+    "resendIn": "Resend in {{sec}}s"
+  },
+  "profileSetup": {
+    "title": "Set up your profile",
+    "namePlaceholder": "Full name",
+    "emailPlaceholder": "Email (optional)",
+    "save": "Continue",
+    "saving": "Saving..."
+  },
+  "home": {
+    "greeting": "Hello, {{name}}",
+    "balance": "Wallet Balance",
+    "tapToSpeak": "Tap mic to speak",
+    "listening": "Listening...",
+    "processing": "Processing...",
+    "pay": "Pay",
+    "history": "History",
+    "profile": "Profile"
+  },
+  "payment": {
+    "title": "Confirm Payment",
+    "to": "To",
+    "amount": "Amount",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "success": "Payment of ₹{{amount}} sent to {{name}}!",
+    "selectRecipient": "Choose recipient",
+    "receiverPhone": "Recipient phone (E.164)",
+    "amountLabel": "Amount (₹)"
+  },
+  "balance": {
+    "title": "Your Balance",
+    "available": "Available Balance",
+    "addMoney": "Add Money"
+  },
+  "history": {
+    "title": "Transactions",
+    "empty": "No transactions yet",
+    "sent": "Sent",
+    "received": "Received"
+  },
+  "profile": {
+    "title": "Profile",
+    "language": "Language",
+    "signOut": "Sign Out",
+    "phone": "Phone"
+  },
+  "voice": {
+    "listening": "I'm listening...",
+    "balance": "Your balance is ₹{{amount}}",
+    "confirmPayment": "Sending ₹{{amount}} to {{name}}. Tap Confirm to proceed.",
+    "contactNotFound": "I couldn't find {{name}} in your contacts.",
+    "contactsPermissionDenied": "Contacts permission denied.",
+    "unknown": "Sorry, I didn't understand that. Please try again.",
+    "error": "Something went wrong. Please try again."
+  },
+  "common": {
+    "back": "Back",
+    "error": "Error",
+    "ok": "OK",
+    "loading": "Loading..."
+  }
+}

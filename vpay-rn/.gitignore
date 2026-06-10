@@ -1,0 +1,28 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+
+# ── Environment (NEVER commit real keys) ──────────────────────
+.env
+.env.local
+.env.production
+.env.staging
+
+# ── Expo / React Native build output ──────────────────────────
+.expo/
+dist/
+web-build/
+android/
+ios/
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── OS junk ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
