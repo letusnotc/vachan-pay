@@ -1,28 +1,34 @@
-# ── Dependencies ──────────────────────────────────────────────
+# ── Dependencies ────────────────────────────────────────────────
 node_modules/
 
-# ── Environment (NEVER commit real keys) ──────────────────────
+# ── Environment — NEVER commit secrets ──────────────────────────
 .env
-.env.local
-.env.production
-.env.staging
+.env.*
+!.env.example
 
-# ── Expo / React Native build output ──────────────────────────
+# ── Expo / Metro ─────────────────────────────────────────────────
 .expo/
 dist/
 web-build/
+expo-env.d.ts
+
+# ── Native build output (generated on eject / EAS build) ────────
 android/
 ios/
 
-# ── Logs ──────────────────────────────────────────────────────
+# ── Code signing & certificates ──────────────────────────────────
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# ── Logs ────────────────────────────────────────────────────────
+logs/
 *.log
 npm-debug.log*
 
-# ── OS junk ───────────────────────────────────────────────────
+# ── OS junk ─────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
-
-# ── Editor ────────────────────────────────────────────────────
-.vscode/
-.idea/
-*.swp

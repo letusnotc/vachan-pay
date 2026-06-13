@@ -1,49 +1,42 @@
 # ================================================================
 #  VPay — Root .gitignore
-#  Covers: Node.js/Express, React Native/Expo, Python, ML models
+#  Global rules that apply to every subfolder.
+#  Project-specific rules live in backend/.gitignore
+#  and vpay-rn/.gitignore.
 # ================================================================
 
 
-# ── Excluded folders (not part of this repo) ────────────────────
+# ── Folders excluded from this repo ─────────────────────────────
 mobile_app/
 .claude/
 
-# ── Excluded root files ──────────────────────────────────────────
+
+# ── Files excluded from this repo ───────────────────────────────
 REVIEW.md
+gemmatrial.py
 
 
-# ── Environment (NEVER commit secrets) ──────────────────────────
+# ── Environment — NEVER commit secrets ──────────────────────────
 .env
 .env.local
+.env.*.local
 .env.production
 .env.staging
 .env.development
 *.env
 
 
-# ── Node.js / npm ───────────────────────────────────────────────
+# ── Dependencies ────────────────────────────────────────────────
 node_modules/
+
+
+# ── Logs ────────────────────────────────────────────────────────
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
-yarn.lock
-
-
-# ── Expo / React Native ─────────────────────────────────────────
-.expo/
-dist/
-web-build/
-android/
-ios/
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.orig.*
-expo-env.d.ts
 
 
 # ── Python ──────────────────────────────────────────────────────
@@ -52,20 +45,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Virtual environments
 .venv/
@@ -74,43 +53,28 @@ env/
 ENV/
 env.bak/
 venv.bak/
-.virtualenv/
 
 # Jupyter
 .ipynb_checkpoints/
-*.ipynb_checkpoints
 
-# mypy / pyright / ruff
+# Type checkers / linters
 .mypy_cache/
 .dmypy.json
 dmypy.json
 .ruff_cache/
 
 
-# ── Machine Learning / Audio ─────────────────────────────────────
-# Uncomment if you don't want to commit large model files:
+# ── ML model files (large — commit only if needed) ──────────────
 # *.h5
 # *.pb
+# *.pkl
 # saved_model/
-# voice_auth_model_cnn/
 
-# Temporary audio files
+
+# ── Temporary audio files ────────────────────────────────────────
 temp.wav
 temp_*.wav
 *.tmp
-
-
-# ── Logs ────────────────────────────────────────────────────────
-logs/
-*.log
-
-
-# ── Build output ────────────────────────────────────────────────
-out/
-.next/
-.nuxt/
-.cache/
-.parcel-cache/
 
 
 # ── OS junk ─────────────────────────────────────────────────────
@@ -124,14 +88,11 @@ Thumbs.db
 desktop.ini
 
 
-# ── Editor ──────────────────────────────────────────────────────
+# ── Editors ─────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.project
-.classpath
-.settings/
 *.sublime-project
 *.sublime-workspace

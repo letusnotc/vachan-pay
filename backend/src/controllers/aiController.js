@@ -1,31 +1,15 @@
-const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+const { GoogleGenAI } = require('@google/genai');
 
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL          = 'mistralai/mistral-small-3.1-24b-instruct:free';
+const ai    = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const MODEL = 'gemma-4-26b-a4b-it';
 
-const callMistral = async (prompt, maxTokens = 200) => {
-  const res = await fetch(OPENROUTER_URL, {
-    method: 'POST',
-    headers: {
-      Authorization:  `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model:      MODEL,
-      messages:   [{ role: 'user', content: prompt }],
-      temperature: 0,
-      max_tokens:  maxTokens
-    })
+const callGemma = async (prompt) => {
+  const response = await ai.models.generateContent({
+    model:    MODEL,
+    contents: prompt,
+    config:   { temperature: 0 }
   });
-
-  if (!res.ok) {
-    const err = new Error(`AI service error: ${res.status}`);
-    err.status = 503;
-    throw err;
-  }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content?.trim() ?? '';
+  return response.text ?? '';
 };
 
 const parseJson = (raw) => {
@@ -41,7 +25,8 @@ exports.analyzeTranscript = async (req, res, next) => {
     const { transcript } = req.body;
     if (!transcript) return res.status(400).json({ error: 'transcript is required' });
 
-    const prompt = `You are a payment assistant for an Indian UPI app. Parse the voice command below and respond ONLY with valid JSON (no markdown, no explanation):
+    const prompt = `You are a payment assistant for an Indian UPI app. The user speaks Hindi, English, or a mix of both.
+Parse the voice command and respond ONLY with valid JSON (no markdown, no explanation):
 
 {
   "intent": "make_payment" | "check_balance" | "check_history" | "unknown",
@@ -52,11 +37,13 @@ exports.analyzeTranscript = async (req, res, next) => {
 Rules:
 - For make_payment extract recipient name and rupee amount if present
 - clarification_message must be a natural sentence asking for what is missing, or "" if all info is present
-- Amounts may be spoken as "five hundred", "500 rupees", "₹500" — normalise to a number
+- Amounts may be spoken as "pachaas", "five hundred", "500 rupees", "₹500" — normalise to a number
+- Hindi examples: "Rahul ko pachaas rupaye bhejo" → make_payment, name: Rahul, amount: 50
+- "mera balance check karo" → check_balance
 
 Voice command: "${transcript}"`;
 
-    const raw    = await callMistral(prompt, 200);
+    const raw    = await callGemma(prompt);
     const parsed = parseJson(raw);
 
     if (!parsed) {
@@ -86,7 +73,7 @@ exports.analyzeChoice = async (req, res, next) => {
 Extract the chosen number. Respond ONLY with JSON: {"choice": <number>}
 If the intent is unclear respond with: {"choice": null}`;
 
-    const raw    = await callMistral(prompt, 50);
+    const raw    = await callGemma(prompt);
     const parsed = parseJson(raw);
 
     res.json(parsed ?? { choice: null });

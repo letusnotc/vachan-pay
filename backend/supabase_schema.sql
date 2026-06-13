@@ -122,3 +122,9 @@ EXCEPTION WHEN OTHERS THEN
   RAISE; -- rolls back the transaction automatically
 END;
 $$;
+
+-- ============================================================
+-- Service-role grants (required for backend API to bypass RLS)
+-- ============================================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles     TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.transactions TO service_role;

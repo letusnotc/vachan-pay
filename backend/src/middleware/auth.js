@@ -18,8 +18,8 @@ module.exports = async (req, res, next) => {
 
     req.user = {
       id:    user.id,
-      phone: user.phone  || null,
-      email: user.email  || null
+      phone: user.phone || user.user_metadata?.phone || null,
+      email: user.email || null
     };
     next();
   } catch (err) {
