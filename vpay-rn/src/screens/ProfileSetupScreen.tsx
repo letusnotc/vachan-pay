@@ -6,6 +6,7 @@ import {
 import { SafeAreaView }   from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { api }            from '../lib/api';
+import { supabase }       from '../lib/supabase';
 import { useStore }       from '../store/store';
 
 const ProfileSetupScreen: React.FC = () => {
@@ -64,6 +65,10 @@ const ProfileSetupScreen: React.FC = () => {
             <Text style={styles.btnText}>{loading ? t('profileSetup.saving') : t('profileSetup.save')}</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity style={styles.signOut} onPress={() => supabase.auth.signOut()}>
+            <Text style={styles.signOutText}>Sign out</Text>
+          </TouchableOpacity>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -77,9 +82,11 @@ const styles = StyleSheet.create({
   title:      { fontSize: 24, fontWeight: '700', color: '#1A1A1A', textAlign: 'center', marginBottom: 32 },
   input:      { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, backgroundColor: '#fff',
                 paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1A1A1A', marginBottom: 14 },
-  btn:        { backgroundColor: '#6C63FF', borderRadius: 12, paddingVertical: 15, alignItems: 'center', marginTop: 8 },
-  btnDisabled:{ opacity: 0.6 },
-  btnText:    { color: '#fff', fontSize: 16, fontWeight: '700' }
+  btn:         { backgroundColor: '#6C63FF', borderRadius: 12, paddingVertical: 15, alignItems: 'center', marginTop: 8 },
+  btnDisabled: { opacity: 0.6 },
+  btnText:     { color: '#fff', fontSize: 16, fontWeight: '700' },
+  signOut:     { marginTop: 20, alignItems: 'center' },
+  signOutText: { color: '#9CA3AF', fontSize: 13 },
 });
 
 export default ProfileSetupScreen;

@@ -19,7 +19,8 @@
     },
     "android": {
       "package": "com.vachanpay.app",
-      "permissions": ["RECORD_AUDIO", "READ_CONTACTS"]
+      "permissions": ["RECORD_AUDIO", "READ_CONTACTS"],
+      "usesCleartextTraffic": true
     },
     "plugins": [
       [
