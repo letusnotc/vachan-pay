@@ -1,5 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet,
+  Alert, Animated, Easing,
+} from 'react-native';
 import { SafeAreaView }              from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation }            from 'react-i18next';
@@ -7,105 +10,132 @@ import { supabase }                  from '../lib/supabase';
 import { useStore }                  from '../store/store';
 import LanguageSwitcher              from '../components/LanguageSwitcher';
 import { RootStackParamList }        from '../../App';
+import { C, shadow }                 from '../theme';
 
 type Props = { navigation: NativeStackNavigationProp<RootStackParamList, 'Profile'> };
 
-const ProfileScreen: React.FC<Props> = ({ navigation }) => {
+function InfoRow({
+  label, value, children,
+}: {
+  label: string; value?: string | null; children?: React.ReactNode;
+}) {
+  return (
+    <View style={row.wrap}>
+      <Text style={row.label}>{label}</Text>
+      <View style={row.right}>
+        {children ?? <Text style={row.value}>{value || '—'}</Text>}
+      </View>
+    </View>
+  );
+}
+const row = StyleSheet.create({
+  wrap:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20 },
+  label: { fontSize: 14, color: C.textSub },
+  right: { flexDirection: 'row', alignItems: 'center' },
+  value: { fontSize: 15, fontWeight: '600', color: C.text },
+});
+
+export default function ProfileScreen({ navigation }: Props) {
   const { t }                  = useTranslation();
   const { profile, setSession } = useStore();
 
+  const mountAnim  = useRef(new Animated.Value(0)).current;
+  const avatarAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.stagger(80, [
+      Animated.spring(avatarAnim, { toValue: 1, tension: 80, friction: 9, useNativeDriver: true }),
+      Animated.timing(mountAnim,  { toValue: 1, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+  }, []);
+
   const initials = profile?.name
-    ?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '??';
+    ?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '?';
+
+  const avatarScale = avatarAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: 'Sign out',
         style: 'destructive',
         onPress: async () => {
           await supabase.auth.signOut();
           setSession(null);
-        }
-      }
+        },
+      },
     ]);
   };
 
-  const Row = ({ icon, label, value }: { icon: string; label: string; value?: string | null }) => (
-    <View style={styles.row}>
-      <Text style={styles.rowIcon}>{icon}</Text>
-      <View>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.rowValue}>{value || '—'}</Text>
-      </View>
-    </View>
-  );
-
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
+    <SafeAreaView style={s.safe}>
+      <View style={s.container}>
 
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backText}>← {t('common.back')}</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>{t('profile.title')}</Text>
-
-        {/* Avatar */}
-        <View style={styles.avatarWrap}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
-          <Text style={styles.nameText}>{profile?.name}</Text>
+        {/* Header */}
+        <View style={s.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
+            <Text style={s.backArrow}>←</Text>
+          </TouchableOpacity>
+          <Text style={s.title}>{t('profile.title')}</Text>
         </View>
+
+        {/* Avatar section */}
+        <Animated.View style={[s.avatarSection, { opacity: avatarAnim, transform: [{ scale: avatarScale }] }]}>
+          <View style={s.avatarRing}>
+            <View style={s.avatar}>
+              <Text style={s.avatarText}>{initials}</Text>
+            </View>
+          </View>
+          <Text style={s.profileName}>{profile?.name}</Text>
+          <View style={s.verifiedBadge}>
+            <Text style={s.verifiedText}>✓  VPay Member</Text>
+          </View>
+        </Animated.View>
 
         {/* Info card */}
-        <View style={styles.card}>
-          <Row icon="📱" label={t('profile.phone')} value={profile?.phone_number} />
-          <View style={styles.divider} />
-          <Row icon="✉️"  label="Email"              value={profile?.email} />
-          <View style={styles.divider} />
-          {/* Language row */}
-          <View style={styles.row}>
-            <Text style={styles.rowIcon}>🌐</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowLabel}>{t('profile.language')}</Text>
-            </View>
+        <Animated.View style={[s.card, { opacity: mountAnim }]}>
+          <InfoRow label={t('profile.phone')} value={profile?.phone_number} />
+          <View style={s.divider} />
+          <InfoRow label="Email" value={profile?.email} />
+          <View style={s.divider} />
+          <InfoRow label={t('profile.language')}>
             <LanguageSwitcher />
-          </View>
-        </View>
+          </InfoRow>
+        </Animated.View>
 
-        <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
-        </TouchableOpacity>
+        {/* Sign out */}
+        <Animated.View style={{ opacity: mountAnim }}>
+          <TouchableOpacity style={s.signOutBtn} onPress={handleSignOut} activeOpacity={0.85}>
+            <Text style={s.signOutText}>{t('profile.signOut')}</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
       </View>
     </SafeAreaView>
   );
-};
+}
 
-const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: '#F8F9FA' },
-  container:   { flex: 1, padding: 24 },
-  back:        { marginBottom: 20 },
-  backText:    { color: '#6C63FF', fontSize: 15, fontWeight: '600' },
-  title:       { fontSize: 24, fontWeight: '700', color: '#1A1A1A', marginBottom: 24 },
-  avatarWrap:  { alignItems: 'center', marginBottom: 28 },
-  avatar:      { width: 80, height: 80, borderRadius: 40, backgroundColor: '#6C63FF',
-                 justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  avatarText:  { fontSize: 28, fontWeight: '700', color: '#fff' },
-  nameText:    { fontSize: 20, fontWeight: '700', color: '#1A1A1A' },
-  card:        { backgroundColor: '#fff', borderRadius: 16, padding: 8,
-                 shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-                 shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, marginBottom: 24 },
-  row:         { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 12 },
-  rowIcon:     { fontSize: 20, marginRight: 14 },
-  rowLabel:    { fontSize: 11, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 },
-  rowValue:    { fontSize: 15, color: '#1A1A1A', fontWeight: '500', marginTop: 2 },
-  divider:     { height: 1, backgroundColor: '#F3F4F6', marginHorizontal: 12 },
-  signOutBtn:  { borderWidth: 1.5, borderColor: '#EF4444', borderRadius: 14,
-                 paddingVertical: 14, alignItems: 'center' },
-  signOutText: { color: '#EF4444', fontSize: 15, fontWeight: '700' }
+const s = StyleSheet.create({
+  safe:      { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, padding: 24 },
+
+  header:    { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 32 },
+  backBtn:   { width: 38, height: 38, borderRadius: 19, backgroundColor: C.white, justifyContent: 'center', alignItems: 'center', ...shadow.sm },
+  backArrow: { fontSize: 18, color: C.text },
+  title:     { fontSize: 22, fontWeight: '800', color: C.text, letterSpacing: -0.3 },
+
+  avatarSection: { alignItems: 'center', marginBottom: 32 },
+  avatarRing:    { width: 104, height: 104, borderRadius: 52, borderWidth: 3, borderColor: C.primaryBg, justifyContent: 'center', alignItems: 'center', marginBottom: 14 },
+  avatar:        { width: 90, height: 90, borderRadius: 45, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', ...shadow.primary },
+  avatarText:    { fontSize: 34, fontWeight: '800', color: '#fff' },
+  profileName:   { fontSize: 22, fontWeight: '800', color: C.text, marginBottom: 8, letterSpacing: -0.3 },
+  verifiedBadge: { backgroundColor: C.successBg, borderRadius: 100, paddingHorizontal: 14, paddingVertical: 5 },
+  verifiedText:  { fontSize: 13, fontWeight: '700', color: C.success },
+
+  card:    { backgroundColor: C.white, borderRadius: 20, paddingVertical: 4, marginBottom: 20, ...shadow.md },
+  divider: { height: 1, backgroundColor: C.border, marginHorizontal: 20 },
+
+  signOutBtn:  { borderWidth: 1.5, borderColor: C.error, borderRadius: 14, paddingVertical: 15, alignItems: 'center', backgroundColor: C.white },
+  signOutText: { color: C.error, fontSize: 15, fontWeight: '700' },
 });
-
-export default ProfileScreen;

@@ -18,6 +18,7 @@ exports.getProfile = async (req, res, next) => {
 };
 
 exports.upsertProfile = async (req, res, next) => {
+  console.log('[profile] upsert → user_id:', req.user.id, '| phone:', req.user.phone);
   try {
     const { name, email } = req.body;
 

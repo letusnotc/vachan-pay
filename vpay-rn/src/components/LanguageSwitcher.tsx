@@ -1,32 +1,29 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useStore } from '../store/store';
-import i18n         from '../i18n';
+import i18n from '../i18n';
+import { C } from '../theme';
 
-const LanguageSwitcher: React.FC = () => {
+export default function LanguageSwitcher() {
   const { language, setLanguage } = useStore();
-
   const toggle = () => {
     const next = language === 'en' ? 'hi' : 'en';
     setLanguage(next);
     i18n.changeLanguage(next);
   };
-
   return (
-    <TouchableOpacity onPress={toggle} style={styles.btn}>
-      <Text style={styles.label}>{language === 'en' ? 'हिंदी' : 'English'}</Text>
+    <TouchableOpacity onPress={toggle} style={s.btn} activeOpacity={0.72}>
+      <Text style={s.label}>{language === 'en' ? 'हिंदी' : 'EN'}</Text>
     </TouchableOpacity>
   );
-};
+}
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   btn: {
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: 14, backgroundColor: '#EEF0FF'
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderRadius: 100,
+    backgroundColor: C.primaryBg,
+    borderWidth: 1, borderColor: '#C9C4FF',
   },
-  label: {
-    fontSize: 13, fontWeight: '600', color: '#6C63FF'
-  }
+  label: { fontSize: 13, fontWeight: '700', color: C.primary },
 });
-
-export default LanguageSwitcher;
