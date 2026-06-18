@@ -2,11 +2,12 @@ import { create }  from 'zustand';
 import { Session } from '@supabase/supabase-js';
 
 export interface Profile {
-  id:             string;
-  name:           string;
-  email:          string | null;
-  phone_number:   string;
-  wallet_balance: number;
+  id:                   string;
+  name:                 string;
+  email:                string | null;
+  phone_number:         string;
+  wallet_balance:       number;
+  onboarding_completed: boolean;
 }
 
 interface AppState {

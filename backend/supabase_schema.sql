@@ -128,3 +128,17 @@ $$;
 -- ============================================================
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles     TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.transactions TO service_role;
+
+-- ============================================================
+-- Migration: add onboarding_completed column
+-- Run this if the profiles table already exists.
+-- Safe to run multiple times (IF NOT EXISTS guard).
+-- ============================================================
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN NOT NULL DEFAULT false;
+
+-- Mark all pre-existing users as having completed onboarding
+-- so they aren't shown the onboarding screen after this migration.
+UPDATE public.profiles
+SET onboarding_completed = true
+WHERE onboarding_completed = false;

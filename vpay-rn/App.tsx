@@ -12,7 +12,10 @@ import { api }        from './src/lib/api';
 import { useStore }   from './src/store/store';
 import { C }          from './src/theme';
 
-import LoginScreen          from './src/screens/LoginScreen';
+import LandingScreen        from './src/screens/LandingScreen';
+import SignInScreen         from './src/screens/SignInScreen';
+import SignUpScreen         from './src/screens/SignUpScreen';
+import OnboardingScreen     from './src/screens/OnboardingScreen';
 import ProfileSetupScreen   from './src/screens/ProfileSetupScreen';
 import HomeScreen           from './src/screens/HomeScreen';
 import ConfirmPaymentScreen from './src/screens/ConfirmPaymentScreen';
@@ -21,7 +24,10 @@ import HistoryScreen        from './src/screens/HistoryScreen';
 import ProfileScreen        from './src/screens/ProfileScreen';
 
 export type RootStackParamList = {
-  Login:          undefined;
+  Landing:        undefined;
+  SignIn:         undefined;
+  SignUp:         undefined;
+  Onboarding:     undefined;
   ProfileSetup:   undefined;
   Home:           undefined;
   ConfirmPayment: { receiverName: string; receiverPhone: string; amount: number };
@@ -81,9 +87,9 @@ const sp = StyleSheet.create({
 
 export default function App() {
   const { session, profile, setSession, setProfile } = useStore();
-  const [hydrated, setHydrated]             = useState(false);
+  const [hydrated,       setHydrated]       = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [backendDown, setBackendDown]       = useState(false);
+  const [backendDown,    setBackendDown]    = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -102,7 +108,9 @@ export default function App() {
     setBackendDown(false);
     try {
       const r = await api.get('/profile');
-      setProfile(r.data.profile);
+      const raw = r.data.profile;
+      // Treat null/undefined onboarding_completed as true (pre-migration safety)
+      setProfile({ ...raw, onboarding_completed: raw.onboarding_completed ?? true });
     } catch (err: any) {
       if (err.response?.status === 404) {
         setProfile(null);
@@ -136,16 +144,26 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-
         <Stack.Navigator screenOptions={{ headerShown: false, animation: 'ios_from_right' }}>
+
           {!session ? (
+            /* ── Unauthenticated ── */
             <>
-              <Stack.Screen name="Login"        component={LoginScreen} />
-              <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+              <Stack.Screen name="Landing"  component={LandingScreen} />
+              <Stack.Screen name="SignIn"   component={SignInScreen} />
+              <Stack.Screen name="SignUp"   component={SignUpScreen} />
             </>
+
           ) : !profile ? (
+            /* ── Authenticated but no profile yet ── */
             <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+
+          ) : !profile.onboarding_completed ? (
+            /* ── Profile exists but onboarding not done ── */
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+
           ) : (
+            /* ── Fully set up ── */
             <>
               <Stack.Screen name="Home"           component={HomeScreen} />
               <Stack.Screen name="ConfirmPayment" component={ConfirmPaymentScreen} />
@@ -154,6 +172,7 @@ export default function App() {
               <Stack.Screen name="Profile"        component={ProfileScreen} />
             </>
           )}
+
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

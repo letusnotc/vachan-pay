@@ -4,11 +4,17 @@ const ai    = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL = 'gemma-4-26b-a4b-it';
 
 const callGemma = async (prompt) => {
-  const response = await ai.models.generateContent({
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Gemma timeout after 45s')), 45_000)
+  );
+
+  const gemmaCall = ai.models.generateContent({
     model:    MODEL,
     contents: prompt,
     config:   { temperature: 0 }
   });
+
+  const response = await Promise.race([gemmaCall, timeout]);
   return response.text ?? '';
 };
 
@@ -18,6 +24,12 @@ const parseJson = (raw) => {
   } catch {
     return null;
   }
+};
+
+const FALLBACK = {
+  intent: 'unknown',
+  parameters: { name: null, amount: null },
+  clarification_message: "Sorry, I couldn't understand that. Please try again."
 };
 
 exports.analyzeTranscript = async (req, res, next) => {
@@ -43,11 +55,18 @@ Rules:
 
 Voice command: "${transcript}"`;
 
-    const raw    = await callGemma(prompt);
-    const parsed = parseJson(raw);
+    let raw;
+    try {
+      raw = await callGemma(prompt);
+    } catch (gemmaErr) {
+      console.error('[AI] Gemma call failed:', gemmaErr?.message || gemmaErr);
+      return res.json(FALLBACK);
+    }
 
+    const parsed = parseJson(raw);
     if (!parsed) {
-      return res.status(422).json({ error: 'Could not parse AI response', raw });
+      console.error('[AI] Could not parse Gemma response:', raw?.slice(0, 200));
+      return res.json(FALLBACK);
     }
 
     if (
@@ -60,6 +79,7 @@ Voice command: "${transcript}"`;
 
     res.json(parsed);
   } catch (err) {
+    console.error('[AI] analyzeTranscript unexpected error:', err?.message || err);
     next(err);
   }
 };
@@ -73,9 +93,15 @@ exports.analyzeChoice = async (req, res, next) => {
 Extract the chosen number. Respond ONLY with JSON: {"choice": <number>}
 If the intent is unclear respond with: {"choice": null}`;
 
-    const raw    = await callGemma(prompt);
-    const parsed = parseJson(raw);
+    let raw;
+    try {
+      raw = await callGemma(prompt);
+    } catch (gemmaErr) {
+      console.error('[AI] Gemma analyzeChoice failed:', gemmaErr?.message || gemmaErr);
+      return res.json({ choice: null });
+    }
 
+    const parsed = parseJson(raw);
     res.json(parsed ?? { choice: null });
   } catch (err) {
     next(err);

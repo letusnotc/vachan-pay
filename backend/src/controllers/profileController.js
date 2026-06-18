@@ -4,7 +4,7 @@ exports.getProfile = async (req, res, next) => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, phone_number, name, email, wallet_balance, created_at')
+      .select('id, phone_number, name, email, wallet_balance, onboarding_completed, created_at')
       .eq('user_id', req.user.id)
       .single();
 
@@ -31,10 +31,29 @@ exports.upsertProfile = async (req, res, next) => {
           name:         name.trim(),
           email:        email?.trim() || null,
           updated_at:   new Date().toISOString()
+          // onboarding_completed intentionally omitted:
+          // INSERT → DB default (false), UPDATE → unchanged
         },
         { onConflict: 'user_id' }
       )
-      .select('id, phone_number, name, email, wallet_balance')
+      .select('id, phone_number, name, email, wallet_balance, onboarding_completed')
+      .single();
+
+    if (error) throw error;
+
+    res.json({ profile: data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.completeOnboarding = async (req, res, next) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ onboarding_completed: true })
+      .eq('user_id', req.user.id)
+      .select('id, phone_number, name, email, wallet_balance, onboarding_completed')
       .single();
 
     if (error) throw error;

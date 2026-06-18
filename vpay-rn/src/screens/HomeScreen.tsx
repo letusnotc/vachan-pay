@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ScrollView, Alert, Animated, Easing,
+  Alert, Animated, Easing,
 } from 'react-native';
 import { SafeAreaView }              from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,23 +9,17 @@ import { useFocusEffect }            from '@react-navigation/native';
 import { useTranslation }            from 'react-i18next';
 import * as Contacts                 from 'expo-contacts';
 
-import { useVoice }       from '../hooks/useVoice';
-import { useStore }       from '../store/store';
-import { api }            from '../lib/api';
-import { normalizePhone } from '../utils/phone';
-import VoiceButton        from '../components/VoiceButton';
-import LanguageSwitcher   from '../components/LanguageSwitcher';
+import { useVoice }        from '../hooks/useVoice';
+import { useStore }        from '../store/store';
+import { api }             from '../lib/api';
+import { normalizePhone }  from '../utils/phone';
+import VoiceButton         from '../components/VoiceButton';
+import LanguageSwitcher    from '../components/LanguageSwitcher';
+import Sidebar             from '../components/Sidebar';
 import { RootStackParamList } from '../../App';
 import { C, shadow } from '../theme';
 
 type Props = { navigation: NativeStackNavigationProp<RootStackParamList, 'Home'> };
-
-const ACTIONS = [
-  { emoji: '💸', label: 'Pay',     bg: C.primaryBg,  screen: 'ConfirmPayment' as const, params: { receiverName: '', receiverPhone: '', amount: 0 } },
-  { emoji: '💰', label: 'Balance', bg: '#E6FAF4',     screen: 'Balance'        as const, params: undefined },
-  { emoji: '🕒', label: 'History', bg: '#EFF6FF',     screen: 'History'        as const, params: undefined },
-  { emoji: '👤', label: 'Profile', bg: '#FFF7ED',     screen: 'Profile'        as const, params: undefined },
-];
 
 function greeting() {
   const h = new Date().getHours();
@@ -34,20 +28,37 @@ function greeting() {
   return 'Good evening';
 }
 
+function HamburgerIcon() {
+  return (
+    <View style={hb.wrap}>
+      <View style={hb.line} />
+      <View style={[hb.line, { width: 16 }]} />
+      <View style={hb.line} />
+    </View>
+  );
+}
+
+const hb = StyleSheet.create({
+  wrap: { gap: 5, padding: 4 },
+  line: { width: 22, height: 2.5, backgroundColor: C.text, borderRadius: 2 },
+});
+
 export default function HomeScreen({ navigation }: Props) {
   const { t }       = useTranslation();
   const { profile } = useStore();
-  const [balance, setBalance] = useState<number>(profile?.wallet_balance ?? 0);
 
   const { isRecording, isProcessing, transcript, startRecording, stopAndProcess, speak } = useVoice();
 
-  const mountAnim   = useRef(new Animated.Value(0)).current;
-  const balanceAnim = useRef(new Animated.Value(0)).current;
+  const [balance,     setBalance]     = useState<number>(profile?.wallet_balance ?? 0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const mountAnim = useRef(new Animated.Value(0)).current;
+  const micAnim   = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.stagger(80, [
-      Animated.timing(mountAnim,   { toValue: 1, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(balanceAnim, { toValue: 1, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    Animated.stagger(100, [
+      Animated.timing(mountAnim, { toValue: 1, duration: 550, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(micAnim,   { toValue: 1, duration: 450, easing: Easing.out(Easing.back(1.05)), useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -55,7 +66,7 @@ export default function HomeScreen({ navigation }: Props) {
     try {
       const res = await api.get('/profile/balance');
       setBalance(Number(res.data.balance));
-    } catch { /* silently refresh on next focus */ }
+    } catch { /* silently retry on next focus */ }
   }, []);
 
   useFocusEffect(useCallback(() => { fetchBalance(); }, [fetchBalance]));
@@ -115,133 +126,107 @@ export default function HomeScreen({ navigation }: Props) {
     Alert.alert(t('payment.selectRecipient'), '', options);
   };
 
-  const initials = profile?.name
-    ?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '?';
+  const firstName = profile?.name?.split(' ')[0] ?? '';
 
-  const cardY = balanceAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] });
+  const micScale = micAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
+
+  const statusText = isProcessing
+    ? 'Processing your request...'
+    : isRecording
+    ? 'Listening...'
+    : 'How can I help you today?';
 
   return (
-    <SafeAreaView style={s.safe}>
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Header ── */}
-        <Animated.View style={[s.header, { opacity: mountAnim }]}>
-          <View>
-            <Text style={s.greetingText}>{greeting()},</Text>
-            <Text style={s.nameText}>{profile?.name ?? ''} 👋</Text>
-          </View>
-          <View style={s.headerRight}>
-            <LanguageSwitcher />
-            <TouchableOpacity
-              style={s.avatarBtn}
-              onPress={() => navigation.navigate('Profile')}
-              activeOpacity={0.8}
-            >
-              <Text style={s.avatarBtnText}>{initials}</Text>
-            </TouchableOpacity>
-          </View>
+    <>
+      <SafeAreaView style={s.safe}>
+
+        {/* ── Top bar ── */}
+        <Animated.View style={[s.topBar, { opacity: mountAnim }]}>
+          <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburgerBtn} activeOpacity={0.7}>
+            <HamburgerIcon />
+          </TouchableOpacity>
+
+          <Text style={s.brandName}>VPay</Text>
+
+          <LanguageSwitcher />
         </Animated.View>
 
-        {/* ── Balance card ── */}
-        <Animated.View style={[s.balanceCard, { opacity: balanceAnim, transform: [{ translateY: cardY }] }]}>
-          {/* Decorative circles */}
-          <View style={s.decCircle1} />
-          <View style={s.decCircle2} />
+        {/* ── Main content ── */}
+        <View style={s.body}>
+          {/* Greeting */}
+          <Animated.View style={[s.greetingBlock, { opacity: mountAnim }]}>
+            <Text style={s.greetingLabel}>{greeting()}</Text>
+            <Text style={s.greetingName}>{firstName}</Text>
+          </Animated.View>
 
-          <Text style={s.balanceLabel}>Wallet Balance</Text>
-          <Text style={s.balanceAmount}>
-            ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
-          <View style={s.balanceFooter}>
-            <View style={s.balanceBadge}>
-              <View style={s.dot} />
-              <Text style={s.balanceBadgeText}>VPay Wallet</Text>
-            </View>
-            <TouchableOpacity onPress={() => navigation.navigate('History')} activeOpacity={0.8}>
-              <Text style={s.historyLink}>History →</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
+          {/* Mic button */}
+          <Animated.View style={[s.micWrap, { opacity: micAnim, transform: [{ scale: micScale }] }]}>
+            <VoiceButton
+              isRecording={isRecording}
+              isProcessing={isProcessing}
+              onPress={handleVoicePress}
+            />
+          </Animated.View>
 
-        {/* ── Voice section ── */}
-        <Animated.View style={[s.voiceSection, { opacity: mountAnim }]}>
-          <Text style={s.voiceStatusText}>
-            {isProcessing ? '⏳  Processing…'
-              : isRecording ? '🔴  Listening…'
-              : '🎙  Tap to speak a command'}
-          </Text>
+          {/* Status / help text */}
+          <Animated.View style={[s.statusBlock, { opacity: mountAnim }]}>
+            <Text style={[
+              s.statusText,
+              isRecording && s.statusActive,
+              isProcessing && s.statusProcessing,
+            ]}>
+              {statusText}
+            </Text>
+          </Animated.View>
 
-          <VoiceButton
-            isRecording={isRecording}
-            isProcessing={isProcessing}
-            onPress={handleVoicePress}
-          />
-
+          {/* Transcript bubble */}
           {!!transcript && (
             <View style={s.transcriptBubble}>
               <Text style={s.transcriptText}>"{transcript}"</Text>
             </View>
           )}
-        </Animated.View>
+        </View>
 
-        {/* ── Quick actions ── */}
-        <Animated.View style={{ opacity: mountAnim }}>
-          <Text style={s.sectionTitle}>Quick Actions</Text>
-          <View style={s.grid}>
-            {ACTIONS.map(({ emoji, label, bg, screen, params }) => (
-              <TouchableOpacity
-                key={label}
-                style={s.gridItem}
-                onPress={() => navigation.navigate(screen as any, params as any)}
-                activeOpacity={0.82}
-              >
-                <View style={[s.gridIcon, { backgroundColor: bg }]}>
-                  <Text style={s.gridEmoji}>{emoji}</Text>
-                </View>
-                <Text style={s.gridLabel}>{label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Animated.View>
+      </SafeAreaView>
 
-      </ScrollView>
-    </SafeAreaView>
+      {/* Always rendered — Sidebar manages its own mount/unmount for exit animation */}
+      <Sidebar
+        visible={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        navigation={navigation}
+      />
+    </>
   );
 }
 
 const s = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: C.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
+  safe: { flex: 1, backgroundColor: C.bg },
 
-  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  greetingText:{ fontSize: 14, color: C.textSub, fontWeight: '500' },
-  nameText:    { fontSize: 20, fontWeight: '800', color: C.text, marginTop: 1 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatarBtn:   { width: 40, height: 40, borderRadius: 20, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', ...shadow.primary },
-  avatarBtnText:{ fontSize: 15, fontWeight: '800', color: '#fff' },
+  topBar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12,
+  },
+  hamburgerBtn: { padding: 4, borderRadius: 8 },
+  brandName:    { fontSize: 18, fontWeight: '800', color: C.text, letterSpacing: -0.3 },
 
-  balanceCard:   { backgroundColor: C.primary, borderRadius: 24, padding: 24, marginBottom: 8, overflow: 'hidden', ...shadow.primary },
-  decCircle1:    { position: 'absolute', width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(255,255,255,0.07)', top: -60, right: -40 },
-  decCircle2:    { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.06)', bottom: -30, right: 40 },
-  balanceLabel:  { fontSize: 13, color: 'rgba(255,255,255,0.65)', fontWeight: '500', marginBottom: 6 },
-  balanceAmount: { fontSize: 40, fontWeight: '800', color: '#fff', letterSpacing: -1, marginBottom: 16 },
-  balanceFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  balanceBadge:  { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 5 },
-  dot:           { width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' },
-  balanceBadgeText:{ fontSize: 12, color: '#fff', fontWeight: '600' },
-  historyLink:   { fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: '600' },
+  body: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 32 },
 
-  voiceSection:    { alignItems: 'center', paddingVertical: 8, marginBottom: 8 },
-  voiceStatusText: { fontSize: 14, color: C.textSub, fontWeight: '500', marginBottom: 4 },
-  transcriptBubble:{ backgroundColor: C.white, borderRadius: 14, paddingHorizontal: 18, paddingVertical: 10, marginTop: 4, maxWidth: '85%', ...shadow.sm },
-  transcriptText:  { fontSize: 14, color: C.textSub, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
+  greetingBlock: { alignItems: 'center', gap: 4 },
+  greetingLabel: { fontSize: 15, color: C.textSub, fontWeight: '500' },
+  greetingName:  { fontSize: 30, fontWeight: '800', color: C.text, letterSpacing: -0.5 },
 
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: C.text, marginBottom: 14 },
-  grid:         { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  gridItem:     { width: '47%', backgroundColor: C.white, borderRadius: 18, padding: 18, alignItems: 'center', ...shadow.md },
-  gridIcon:     { width: 52, height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  gridEmoji:    { fontSize: 24 },
-  gridLabel:    { fontSize: 14, fontWeight: '600', color: C.text },
+  micWrap: { alignItems: 'center' },
+
+  statusBlock:     { alignItems: 'center' },
+  statusText:      { fontSize: 15, color: C.textMuted, fontWeight: '500', textAlign: 'center' },
+  statusActive:    { color: C.error, fontWeight: '600' },
+  statusProcessing:{ color: C.primary, fontWeight: '600' },
+
+  transcriptBubble: {
+    backgroundColor: C.white, borderRadius: 16,
+    paddingHorizontal: 20, paddingVertical: 12,
+    maxWidth: '88%', ...shadow.sm,
+    borderWidth: 1, borderColor: C.border,
+  },
+  transcriptText: { fontSize: 14, color: C.textSub, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
 });

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Joi    = require('joi');
 const auth   = require('../middleware/auth');
-const { getProfile, upsertProfile, getBalance } = require('../controllers/profileController');
+const { getProfile, upsertProfile, completeOnboarding, getBalance } = require('../controllers/profileController');
 
 const validate = (schema) => (req, res, next) => {
   const { error } = schema.validate(req.body, { abortEarly: false });
@@ -16,8 +16,9 @@ const profileSchema = Joi.object({
 
 router.use(auth);
 
-router.get('/',        getProfile);
-router.post('/',       validate(profileSchema), upsertProfile);
-router.get('/balance', getBalance);
+router.get('/',          getProfile);
+router.post('/',         validate(profileSchema), upsertProfile);
+router.patch('/onboarding', completeOnboarding);
+router.get('/balance',   getBalance);
 
 module.exports = router;
