@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 import './src/i18n';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { NavigationContainer }        from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider }           from 'react-native-safe-area-context';
@@ -62,6 +62,15 @@ function SplashScreen() {
   );
 }
 
+const bd = StyleSheet.create({
+  root:    { flex: 1, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  title:   { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 8 },
+  url:     { color: 'rgba(255,255,255,0.65)', fontSize: 13, marginBottom: 32 },
+  btn:     { backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 36, paddingVertical: 13, marginBottom: 16 },
+  btnText: { color: C.primary, fontSize: 16, fontWeight: '700' },
+  signOut: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
+});
+
 const sp = StyleSheet.create({
   root:       { flex: 1, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', gap: 20 },
   logoCircle: { width: 88, height: 88, borderRadius: 44, backgroundColor: 'rgba(255,255,255,0.22)', justifyContent: 'center', alignItems: 'center' },
@@ -74,6 +83,7 @@ export default function App() {
   const { session, profile, setSession, setProfile } = useStore();
   const [hydrated, setHydrated]             = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [backendDown, setBackendDown]       = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -86,20 +96,47 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
+  const fetchProfile = async () => {
     if (!session) { setProfile(null); return; }
     setProfileLoading(true);
-    api.get('/profile')
-      .then(r => setProfile(r.data.profile))
-      .catch(() => setProfile(null))
-      .finally(() => setProfileLoading(false));
-  }, [session?.user?.id]);
+    setBackendDown(false);
+    try {
+      const r = await api.get('/profile');
+      setProfile(r.data.profile);
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        setProfile(null);
+      } else {
+        setBackendDown(true);
+      }
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchProfile(); }, [session?.user?.id]);
 
   if (!hydrated || profileLoading) return <SplashScreen />;
+
+  if (backendDown && session) {
+    return (
+      <View style={bd.root}>
+        <Text style={bd.title}>Cannot reach backend</Text>
+        <Text style={bd.url}>{process.env.EXPO_PUBLIC_API_URL}</Text>
+        <TouchableOpacity style={bd.btn} onPress={fetchProfile}>
+          <Text style={bd.btnText}>Retry</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => supabase.auth.signOut()}>
+          <Text style={bd.signOut}>Sign out</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>
       <NavigationContainer>
+
         <Stack.Navigator screenOptions={{ headerShown: false, animation: 'ios_from_right' }}>
           {!session ? (
             <>
