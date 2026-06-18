@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, Animated, Easing,
+  ActivityIndicator, Alert, Animated, Easing, Platform,
 } from 'react-native';
 import { SafeAreaView }              from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -53,6 +53,17 @@ export default function BalanceScreen({ navigation }: Props) {
           <View style={s.cardDec1} />
           <View style={s.cardDec2} />
 
+          {/* Top row: wallet badge + active indicator */}
+          <View style={s.cardTopRow}>
+            <View style={s.walletBadge}>
+              <Text style={s.walletBadgeText}>PREPAID UPI WALLET</Text>
+            </View>
+            <View style={s.activeRow}>
+              <View style={s.activeDot} />
+              <Text style={s.activeText}>Active</Text>
+            </View>
+          </View>
+
           <Text style={s.cardLabel}>{t('balance.available')}</Text>
 
           {loading ? (
@@ -88,6 +99,13 @@ export default function BalanceScreen({ navigation }: Props) {
                 <Text style={s.statusText}>Active</Text>
               </View>
             </View>
+            <View style={s.divider} />
+            <View style={s.infoRow}>
+              <Text style={s.infoLabel}>Auto-Debit Limit</Text>
+              <Text style={[s.infoValue, { fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }]}>
+                ₹25,000.00 / day
+              </Text>
+            </View>
           </Animated.View>
         )}
 
@@ -98,6 +116,17 @@ export default function BalanceScreen({ navigation }: Props) {
         >
           <Text style={s.addBtnText}>{t('balance.addMoney')}</Text>
         </TouchableOpacity>
+
+        {/* RBI compliance note */}
+        <View style={s.infoNote}>
+          <View style={s.infoNoteDot} />
+          <View style={s.infoNoteContent}>
+            <Text style={s.infoNoteTitle}>RBI Compliant Wallet</Text>
+            <Text style={s.infoNoteBody}>
+              Your VPay balances are secured in trustee accounts backed by scheduled banks. SSL encrypted.
+            </Text>
+          </View>
+        </View>
 
       </View>
     </SafeAreaView>
@@ -116,6 +145,14 @@ const s = StyleSheet.create({
   card:       { backgroundColor: C.primary, borderRadius: 28, padding: 28, marginBottom: 16, overflow: 'hidden', ...shadow.primary },
   cardDec1:   { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.07)', top: -70, right: -50 },
   cardDec2:   { position: 'absolute', width: 130, height: 130, borderRadius: 65, backgroundColor: 'rgba(255,255,255,0.05)', bottom: -40, left: 20 },
+
+  cardTopRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  walletBadge:    { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  walletBadgeText:{ fontSize: 10, color: 'rgba(255,255,255,0.8)', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', letterSpacing: 0.3 },
+  activeRow:      { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  activeDot:      { width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ADE80' },
+  activeText:     { fontSize: 12, color: '#fff', fontWeight: '700' },
+
   cardLabel:  { fontSize: 13, color: 'rgba(255,255,255,0.65)', fontWeight: '500', marginBottom: 8 },
   amount:     { fontSize: 52, fontWeight: '800', color: '#fff', letterSpacing: -1.5, marginBottom: 20 },
   cardFooter: { flexDirection: 'row' },
@@ -132,6 +169,12 @@ const s = StyleSheet.create({
   statusDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: C.success },
   statusText: { fontSize: 13, fontWeight: '600', color: C.success },
 
-  addBtn:     { backgroundColor: C.white, borderRadius: 14, paddingVertical: 16, alignItems: 'center', borderWidth: 1.5, borderColor: C.primary, ...shadow.sm },
+  addBtn:     { backgroundColor: C.white, borderRadius: 14, paddingVertical: 16, alignItems: 'center', borderWidth: 1.5, borderColor: C.primary, ...shadow.sm, marginBottom: 14 },
   addBtnText: { color: C.primary, fontSize: 15, fontWeight: '700' },
+
+  infoNote:        { flexDirection: 'row', backgroundColor: C.primaryBg, borderRadius: 14, padding: 14, gap: 10, borderWidth: 1, borderColor: 'rgba(91,79,232,0.12)', alignItems: 'flex-start' },
+  infoNoteDot:     { width: 10, height: 10, borderRadius: 5, backgroundColor: C.primary, marginTop: 2 },
+  infoNoteContent: { flex: 1 },
+  infoNoteTitle:   { fontSize: 13, fontWeight: '700', color: C.primary, marginBottom: 3 },
+  infoNoteBody:    { fontSize: 12, color: C.textSub, lineHeight: 17 },
 });

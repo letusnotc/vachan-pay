@@ -36,13 +36,13 @@ function RecipientAvatar({ name }: { name: string }) {
 }
 const av = StyleSheet.create({
   wrap:   { alignItems: 'center', marginBottom: 28 },
-  circle: { width: 72, height: 72, borderRadius: 36, backgroundColor: C.primaryBg, justifyContent: 'center', alignItems: 'center', marginBottom: 10, borderWidth: 2, borderColor: '#C9C4FF' },
+  circle: { width: 72, height: 72, borderRadius: 20, backgroundColor: C.primaryBg, justifyContent: 'center', alignItems: 'center', marginBottom: 10, borderWidth: 2, borderColor: '#C9C4FF' },
   text:   { fontSize: 26, fontWeight: '800', color: C.primary },
   name:   { fontSize: 17, fontWeight: '700', color: C.text },
 });
 
 function SuccessState({ amount, name }: { amount: string; name: string }) {
-  const circleScale = useRef(new Animated.Value(0.4)).current;
+  const circleScale  = useRef(new Animated.Value(0.4)).current;
   const checkOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity  = useRef(new Animated.Value(0)).current;
   const textY        = useRef(new Animated.Value(16)).current;
@@ -76,8 +76,8 @@ function SuccessState({ amount, name }: { amount: string; name: string }) {
 }
 const sc = StyleSheet.create({
   root:   { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.white, gap: 20 },
-  circle: { width: 100, height: 100, borderRadius: 50, backgroundColor: C.successBg, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#6EE7B7' },
-  check:  { fontSize: 44, color: C.success, fontWeight: '800' },
+  circle: { width: 100, height: 100, borderRadius: 50, backgroundColor: C.success, justifyContent: 'center', alignItems: 'center' },
+  check:  { fontSize: 44, color: '#fff', fontWeight: '800' },
   title:  { fontSize: 24, fontWeight: '800', color: C.text, letterSpacing: -0.3 },
   amount: { fontSize: 38, fontWeight: '800', color: C.success, letterSpacing: -1, marginTop: 4 },
   sub:    { fontSize: 16, color: C.textSub, marginTop: 2 },
@@ -164,8 +164,11 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
             {/* Amount display (voice prefilled) */}
             {isVoicePrefilled && formattedAmount ? (
               <View style={s.amountCard}>
-                <Text style={s.amountLabel}>{t('payment.amount')}</Text>
+                <Text style={s.parsedLabel}>PARSED AMOUNT</Text>
                 <Text style={s.amountLarge}>{formattedAmount}</Text>
+                <View style={s.voiceIntentBadge}>
+                  <Text style={s.voiceIntentText}>Voice Intent Structured</Text>
+                </View>
               </View>
             ) : null}
 
@@ -232,9 +235,11 @@ const s = StyleSheet.create({
   backArrow: { fontSize: 18, color: C.text },
   title:     { fontSize: 22, fontWeight: '800', color: C.text, letterSpacing: -0.3 },
 
-  amountCard:  { backgroundColor: C.white, borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 24, ...shadow.md },
-  amountLabel: { fontSize: 12, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
-  amountLarge: { fontSize: 48, fontWeight: '800', color: C.text, letterSpacing: -1.5 },
+  amountCard:       { backgroundColor: C.white, borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 24, ...shadow.md },
+  parsedLabel:      { fontSize: 10, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 },
+  amountLarge:      { fontSize: 48, fontWeight: '800', color: C.primary, letterSpacing: -1.5 },
+  voiceIntentBadge: { marginTop: 12, backgroundColor: C.successBg, borderRadius: 100, paddingHorizontal: 12, paddingVertical: 4 },
+  voiceIntentText:  { fontSize: 11, fontWeight: '700', color: C.success },
 
   inputCard:   { backgroundColor: C.white, borderRadius: 20, padding: 20, marginBottom: 24, ...shadow.md },
   fieldLabel:  { fontSize: 11, fontWeight: '700', color: C.textSub, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },

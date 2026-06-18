@@ -21,7 +21,10 @@ function InfoRow({
 }) {
   return (
     <View style={row.wrap}>
-      <Text style={row.label}>{label}</Text>
+      <View style={row.labelGroup}>
+        <View style={row.dot} />
+        <Text style={row.label}>{label}</Text>
+      </View>
       <View style={row.right}>
         {children ?? <Text style={row.value}>{value || '—'}</Text>}
       </View>
@@ -29,10 +32,12 @@ function InfoRow({
   );
 }
 const row = StyleSheet.create({
-  wrap:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20 },
-  label: { fontSize: 14, color: C.textSub },
-  right: { flexDirection: 'row', alignItems: 'center' },
-  value: { fontSize: 15, fontWeight: '600', color: C.text },
+  wrap:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20 },
+  labelGroup: { flexDirection: 'row', alignItems: 'center' },
+  dot:        { width: 8, height: 8, borderRadius: 4, backgroundColor: C.primaryBg, marginRight: 8 },
+  label:      { fontSize: 14, color: C.textSub },
+  right:      { flexDirection: 'row', alignItems: 'center' },
+  value:      { fontSize: 15, fontWeight: '600', color: C.text },
 });
 
 export default function ProfileScreen({ navigation }: Props) {
@@ -107,7 +112,7 @@ export default function ProfileScreen({ navigation }: Props) {
         {/* Sign out */}
         <Animated.View style={{ opacity: mountAnim }}>
           <TouchableOpacity style={s.signOutBtn} onPress={handleSignOut} activeOpacity={0.85}>
-            <Text style={s.signOutText}>{t('profile.signOut')}</Text>
+            <Text style={s.signOutText}>Sign Out Wallet Account</Text>
           </TouchableOpacity>
         </Animated.View>
 

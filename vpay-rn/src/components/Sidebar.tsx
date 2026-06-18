@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../store/store';
 import { RootStackParamList } from '../../App';
@@ -19,19 +20,34 @@ type Props = {
 
 const SIDEBAR_WIDTH = Dimensions.get('window').width * 0.76;
 
-function NavItem({ label, onPress }: { label: string; onPress: () => void }) {
+type NavItemProps = {
+  icon:    React.ComponentProps<typeof Ionicons>['name'];
+  label:   string;
+  desc:    string;
+  onPress: () => void;
+};
+
+function NavItem({ icon, label, desc, onPress }: NavItemProps) {
   return (
     <TouchableOpacity style={ni.row} onPress={onPress} activeOpacity={0.72}>
-      <Text style={ni.label}>{label}</Text>
-      <Text style={ni.arrow}>›</Text>
+      <View style={ni.iconBadge}>
+        <Ionicons name={icon} size={20} color={C.primary} />
+      </View>
+      <View style={ni.textBlock}>
+        <Text style={ni.label}>{label}</Text>
+        <Text style={ni.desc}>{desc}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
     </TouchableOpacity>
   );
 }
 
 const ni = StyleSheet.create({
-  row:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16 },
-  label: { fontSize: 16, fontWeight: '500', color: C.text },
-  arrow: { fontSize: 20, color: C.textMuted, fontWeight: '300' },
+  row:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, gap: 12 },
+  iconBadge: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.primaryBg, justifyContent: 'center', alignItems: 'center' },
+  textBlock: { flex: 1 },
+  label:     { fontSize: 15, fontWeight: '600', color: C.text },
+  desc:      { fontSize: 12, color: C.textSub, marginTop: 2 },
 });
 
 export default function Sidebar({ visible, onClose, navigation }: Props) {
@@ -119,23 +135,44 @@ export default function Sidebar({ visible, onClose, navigation }: Props) {
             <Text style={s.profileName} numberOfLines={1}>{profile?.name ?? ''}</Text>
             <Text style={s.profilePhone}>{profile?.phone_number ?? ''}</Text>
           </View>
+          <TouchableOpacity style={s.closeBtn} onPress={onClose} activeOpacity={0.72}>
+            <Ionicons name="close" size={18} color={C.textSub} />
+          </TouchableOpacity>
         </View>
 
         <View style={s.divider} />
 
         {/* Navigation items */}
         <View style={s.navSection}>
-          <NavItem label="Balance" onPress={() => navigate('Balance')} />
+          <NavItem
+            icon="card-outline"
+            label="Balance"
+            desc="View wallet cash, add money"
+            onPress={() => navigate('Balance')}
+          />
           <View style={s.hairline} />
-          <NavItem label="History" onPress={() => navigate('History')} />
+          <NavItem
+            icon="time-outline"
+            label="History"
+            desc="Passbook audit, send receipts"
+            onPress={() => navigate('History')}
+          />
           <View style={s.hairline} />
-          <NavItem label="Profile" onPress={() => navigate('Profile')} />
+          <NavItem
+            icon="person-outline"
+            label="Profile"
+            desc="Wallet parameters, security"
+            onPress={() => navigate('Profile')}
+          />
         </View>
 
         {/* Sign Out */}
         <TouchableOpacity style={s.signOutBtn} onPress={signOut} activeOpacity={0.75}>
           <Text style={s.signOutText}>Sign Out</Text>
         </TouchableOpacity>
+
+        {/* Version footer */}
+        <Text style={s.version}>VPay App v2.4.0</Text>
       </Animated.View>
     </View>
   );
@@ -157,12 +194,13 @@ const s = StyleSheet.create({
     ...shadow.lg,
   },
 
-  profileSection: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 4 },
-  avatar:         { width: 52, height: 52, borderRadius: 26, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', ...shadow.primary },
-  avatarText:     { fontSize: 18, fontWeight: '800', color: '#fff' },
+  profileSection: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
+  avatar:         { width: 64, height: 64, borderRadius: 16, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', ...shadow.primary },
+  avatarText:     { fontSize: 20, fontWeight: '800', color: '#fff' },
   profileInfo:    { flex: 1 },
   profileName:    { fontSize: 17, fontWeight: '700', color: C.text },
   profilePhone:   { fontSize: 13, color: C.textSub, marginTop: 2 },
+  closeBtn:       { width: 32, height: 32, borderRadius: 8, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center' },
 
   divider:    { height: 1, backgroundColor: C.border, marginVertical: 20 },
   navSection: { flex: 1 },
@@ -170,4 +208,6 @@ const s = StyleSheet.create({
 
   signOutBtn:  { borderWidth: 1.5, borderColor: C.error, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
   signOutText: { color: C.error, fontSize: 15, fontWeight: '600' },
+
+  version: { fontSize: 10, color: C.textMuted, textAlign: 'center', marginTop: 12, fontVariant: ['tabular-nums'] },
 });

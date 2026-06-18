@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   Dimensions, FlatList, Animated, NativeScrollEvent,
@@ -19,14 +19,25 @@ const { width } = Dimensions.get('window');
 
 function WaveformIllustration() {
   const bars = [32, 52, 72, 88, 72, 52, 32];
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.85, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.0,  duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
   return (
-    <View style={ill.container}>
+    <Animated.View style={[ill.container, { opacity: pulseAnim }]}>
       <View style={ill.inner}>
         {bars.map((h, i) => (
           <View key={i} style={[ill.bar, { height: h }]} />
         ))}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -34,17 +45,18 @@ function TransferIllustration() {
   return (
     <View style={ill.container}>
       <View style={ill.inner}>
+        {/* Left circle — sender, shows rupee symbol */}
         <View style={ill.circle}>
-          <View style={ill.circleLine} />
-          <View style={ill.circleHead} />
+          <Text style={ill.circleSymbol}>₹</Text>
         </View>
+        {/* Arrow */}
         <View style={ill.arrow}>
           <View style={ill.arrowLine} />
           <View style={ill.arrowHead} />
         </View>
+        {/* Right circle — receiver, success green with checkmark */}
         <View style={[ill.circle, ill.circleRight]}>
-          <View style={ill.circleLine} />
-          <View style={ill.circleHead} />
+          <Text style={ill.circleCheck}>✓</Text>
         </View>
       </View>
     </View>
@@ -80,10 +92,10 @@ const ill = StyleSheet.create({
   arrowLine: { width: 36, height: 2.5, backgroundColor: C.primary },
   arrowHead: { width: 0, height: 0, borderTopWidth: 7, borderBottomWidth: 7, borderLeftWidth: 11, borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: C.primary },
 
-  circle:      { width: 38, height: 38, borderRadius: 19, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center' },
-  circleRight: { backgroundColor: C.primaryLight },
-  circleLine:  { width: 14, height: 14, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.85)' },
-  circleHead:  { position: 'absolute', bottom: 7, width: 22, height: 7, borderTopLeftRadius: 8, borderTopRightRadius: 8, backgroundColor: 'rgba(255,255,255,0.6)' },
+  circle:       { width: 38, height: 38, borderRadius: 19, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center' },
+  circleRight:  { backgroundColor: C.success },
+  circleSymbol: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  circleCheck:  { fontSize: 18, fontWeight: '700', color: '#fff' },
 
   // Language
   langStack:            { gap: 12, alignItems: 'center' },

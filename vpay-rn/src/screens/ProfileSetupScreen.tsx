@@ -57,15 +57,15 @@ export default function ProfileSetupScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          {/* Step badge */}
+          {/* Step badge — both dots active since this is the final step */}
           <View style={s.stepRow}>
-            <View style={s.stepDot} />
+            <View style={[s.stepDot, s.stepDotActive]} />
             <View style={[s.stepDot, s.stepDotActive]} />
           </View>
 
           {/* Avatar preview */}
           <Animated.View style={[s.avatarWrap, { opacity: avatarOpacity, transform: [{ scale: avatarScale }] }]}>
-            <View style={s.avatar}>
+            <View style={[s.avatar, shadow.primary]}>
               <Text style={s.avatarText}>{initials}</Text>
             </View>
             <Text style={s.avatarHint}>Your VPay identity</Text>
@@ -73,7 +73,8 @@ export default function ProfileSetupScreen() {
 
           {/* Form */}
           <Animated.View style={{ opacity: formAnim, transform: [{ translateY: formY }] }}>
-            <Text style={s.title}>{t('profileSetup.title')}</Text>
+            <Text style={s.title}>Tell us your name</Text>
+            <Text style={s.subTitle}>Setting up your wallet profile</Text>
 
             <View style={s.field}>
               <Text style={s.label}>Full name</Text>
@@ -131,16 +132,17 @@ const s = StyleSheet.create({
   safe:       { flex: 1, backgroundColor: C.bg },
   container:  { flexGrow: 1, padding: 28, paddingTop: 20 },
 
-  stepRow:      { flexDirection: 'row', gap: 6, marginBottom: 36 },
-  stepDot:      { width: 8, height: 8, borderRadius: 4, backgroundColor: C.border },
-  stepDotActive:{ backgroundColor: C.primary, width: 24 },
+  stepRow:       { flexDirection: 'row', gap: 6, marginBottom: 36 },
+  stepDot:       { width: 8, height: 8, borderRadius: 4, backgroundColor: C.border },
+  stepDotActive: { backgroundColor: C.primary, width: 24 },
 
   avatarWrap: { alignItems: 'center', marginBottom: 36 },
-  avatar:     { width: 88, height: 88, borderRadius: 44, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 10, ...shadow.primary },
+  avatar:     { width: 88, height: 88, borderRadius: 44, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
   avatarText: { fontSize: 32, fontWeight: '800', color: '#fff' },
   avatarHint: { fontSize: 13, color: C.textMuted },
 
-  title: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 28, letterSpacing: -0.4 },
+  title:    { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 6, letterSpacing: -0.4 },
+  subTitle: { fontSize: 14, color: C.textSub, marginBottom: 28 },
 
   field:        { marginBottom: 18 },
   label:        { fontSize: 12, fontWeight: '700', color: C.textSub, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },

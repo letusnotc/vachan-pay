@@ -31,14 +31,23 @@ function Avatar({ name, phone, sent }: { name?: string | null; phone?: string; s
   const bg = sent ? C.errorBg : C.successBg;
   const fg = sent ? C.error   : C.success;
   return (
-    <View style={[av.circle, { backgroundColor: bg }]}>
-      <Text style={[av.text, { color: fg }]}>{initials(name, phone)}</Text>
+    <View style={av.wrap}>
+      <View style={[av.circle, { backgroundColor: bg }]}>
+        <Text style={[av.text, { color: fg }]}>{initials(name, phone)}</Text>
+      </View>
+      {/* Direction badge */}
+      <View style={[av.dirBadge, { backgroundColor: sent ? C.error : C.success }]}>
+        <Text style={av.dirBadgeText}>{sent ? '↑' : '↓'}</Text>
+      </View>
     </View>
   );
 }
 const av = StyleSheet.create({
-  circle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
-  text:   { fontSize: 14, fontWeight: '800' },
+  wrap:        { width: 44, height: 44, marginRight: 14, position: 'relative' },
+  circle:      { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  text:        { fontSize: 14, fontWeight: '800' },
+  dirBadge:    { position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: C.white },
+  dirBadgeText:{ fontSize: 9, color: '#fff', fontWeight: '800', lineHeight: 11 },
 });
 
 function formatDate(iso: string) {
@@ -76,6 +85,7 @@ function TxnRow({ item, index }: { item: Transaction; index: number }) {
         <Text style={[s.rowAmount, isSent ? s.amountSent : s.amountReceived]}>
           {isSent ? '−' : '+'}₹{Number(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </Text>
+        <Text style={s.upiTag}>UPI</Text>
         <View style={[s.statusPill, item.status === 'completed' ? s.pillGreen : s.pillGray]}>
           <Text style={[s.statusText, item.status === 'completed' ? s.statusGreen : s.statusGray]}>
             {item.status}
@@ -118,19 +128,24 @@ export default function HistoryScreen({ navigation }: Props) {
           </View>
         ) : txns.length === 0 ? (
           <View style={s.center}>
-            <Text style={s.emptyEmoji}>📭</Text>
+            <View style={s.emptyIcon}>
+              <Text style={s.emptyIconText}>—</Text>
+            </View>
             <Text style={s.emptyTitle}>No transactions yet</Text>
             <Text style={s.emptyBody}>{t('history.empty')}</Text>
           </View>
         ) : (
-          <FlatList
-            data={txns}
-            keyExtractor={i => i.id}
-            renderItem={({ item, index }) => <TxnRow item={item} index={index} />}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 40 }}
-            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          />
+          <>
+            <Text style={s.sectionHeader}>Recent Activity</Text>
+            <FlatList
+              data={txns}
+              keyExtractor={i => i.id}
+              renderItem={({ item, index }) => <TxnRow item={item} index={index} />}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 40 }}
+              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+            />
+          </>
         )}
       </View>
     </SafeAreaView>
@@ -146,20 +161,24 @@ const s = StyleSheet.create({
   backArrow: { fontSize: 18, color: C.text },
   title:     { fontSize: 22, fontWeight: '800', color: C.text, letterSpacing: -0.3 },
 
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 8 },
-  emptyEmoji:{ fontSize: 56, marginBottom: 8 },
-  emptyTitle:{ fontSize: 18, fontWeight: '700', color: C.text },
-  emptyBody: { fontSize: 14, color: C.textMuted, textAlign: 'center' },
+  sectionHeader: { fontSize: 10, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8, paddingLeft: 4 },
+
+  center:       { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 8 },
+  emptyIcon:    { width: 64, height: 64, borderRadius: 16, backgroundColor: C.primaryBg, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  emptyIconText:{ fontSize: 24, color: C.primary, fontWeight: '800' },
+  emptyTitle:   { fontSize: 18, fontWeight: '700', color: C.text },
+  emptyBody:    { fontSize: 14, color: C.textMuted, textAlign: 'center' },
 
   row:      { flexDirection: 'row', alignItems: 'center', backgroundColor: C.white, borderRadius: 18, padding: 14, ...shadow.sm },
   rowInfo:  { flex: 1 },
   rowName:  { fontSize: 15, fontWeight: '600', color: C.text, marginBottom: 3 },
   rowDate:  { fontSize: 12, color: C.textMuted },
 
-  rowRight:       { alignItems: 'flex-end', gap: 5 },
+  rowRight:       { alignItems: 'flex-end', gap: 3 },
   rowAmount:      { fontSize: 16, fontWeight: '700' },
   amountSent:     { color: C.error },
   amountReceived: { color: C.success },
+  upiTag:         { fontSize: 9, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
 
   statusPill:  { borderRadius: 100, paddingHorizontal: 8, paddingVertical: 2 },
   pillGreen:   { backgroundColor: C.successBg },

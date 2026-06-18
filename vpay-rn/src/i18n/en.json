@@ -26,10 +26,16 @@
   },
   "home": {
     "greeting": "Hello, {{name}}",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "subtitle": "I'm here to make payments simple and secure for you.",
     "balance": "Wallet Balance",
     "tapToSpeak": "Tap mic to speak",
     "listening": "Listening...",
-    "processing": "Processing...",
+    "processing": "Processing your request...",
+    "statusIdle": "How can I help you today?",
+    "transcriptDetected": "TRANSCRIPT DETECTED",
     "pay": "Pay",
     "history": "History",
     "profile": "Profile"

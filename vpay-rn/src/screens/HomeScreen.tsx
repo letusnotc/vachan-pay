@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  Alert, Animated, Easing,
+  Alert, Animated, Easing, Dimensions,
 } from 'react-native';
 import { SafeAreaView }              from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,12 +21,37 @@ import { C, shadow } from '../theme';
 
 type Props = { navigation: NativeStackNavigationProp<RootStackParamList, 'Home'> };
 
-function greeting() {
+function getGreeting(t: (k: string) => string) {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return t('home.goodMorning');
+  if (h < 17) return t('home.goodAfternoon');
+  return t('home.goodEvening');
 }
+
+
+const { width: SW, height: SH } = Dimensions.get('window');
+const DOT_GAP = 28;
+
+function DotGrid() {
+  const cols = Math.ceil(SW / DOT_GAP);
+  const rows = Math.ceil(SH / DOT_GAP);
+  const dots = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      dots.push(
+        <View
+          key={`${r}-${c}`}
+          style={[dg.dot, { top: r * DOT_GAP, left: c * DOT_GAP }]}
+        />
+      );
+    }
+  }
+  return <View style={StyleSheet.absoluteFill} pointerEvents="none">{dots}</View>;
+}
+
+const dg = StyleSheet.create({
+  dot: { position: 'absolute', width: 3, height: 3, borderRadius: 2, backgroundColor: 'rgba(91,79,232,0.25)' },
+});
 
 function HamburgerIcon() {
   return (
@@ -126,37 +151,40 @@ export default function HomeScreen({ navigation }: Props) {
     Alert.alert(t('payment.selectRecipient'), '', options);
   };
 
-  const firstName = profile?.name?.split(' ')[0] ?? '';
-
-  const micScale = micAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
+  const firstName     = profile?.name?.split(' ')[0] ?? '';
+  const greetingText  = getGreeting(t);
+  const micScale      = micAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
 
   const statusText = isProcessing
-    ? 'Processing your request...'
+    ? t('home.processing')
     : isRecording
-    ? 'Listening...'
-    : 'How can I help you today?';
+    ? t('home.listening')
+    : t('home.statusIdle');
 
   return (
     <>
       <SafeAreaView style={s.safe}>
+        <DotGrid />
 
         {/* ── Top bar ── */}
         <Animated.View style={[s.topBar, { opacity: mountAnim }]}>
           <TouchableOpacity onPress={() => setSidebarOpen(true)} style={s.hamburgerBtn} activeOpacity={0.7}>
             <HamburgerIcon />
           </TouchableOpacity>
-
           <Text style={s.brandName}>VPay</Text>
-
           <LanguageSwitcher />
         </Animated.View>
 
         {/* ── Main content ── */}
         <View style={s.body}>
-          {/* Greeting */}
+
+          {/* Greeting block */}
           <Animated.View style={[s.greetingBlock, { opacity: mountAnim }]}>
-            <Text style={s.greetingLabel}>{greeting()}</Text>
+            <View style={s.greetingBg} />
+            <Text style={s.greetingLabel}>{greetingText}</Text>
             <Text style={s.greetingName}>{firstName}</Text>
+            <Text style={s.subtitle}>{t('home.subtitle')}</Text>
+            <View style={s.subtitleLine} />
           </Animated.View>
 
           {/* Mic button */}
@@ -168,28 +196,32 @@ export default function HomeScreen({ navigation }: Props) {
             />
           </Animated.View>
 
-          {/* Status / help text */}
+          {/* Status text with dash decorators */}
           <Animated.View style={[s.statusBlock, { opacity: mountAnim }]}>
-            <Text style={[
-              s.statusText,
-              isRecording && s.statusActive,
-              isProcessing && s.statusProcessing,
-            ]}>
-              {statusText}
-            </Text>
+            <View style={s.statusRow}>
+              {!isRecording && !isProcessing && <View style={s.statusDash} />}
+              <Text style={[
+                s.statusText,
+                isRecording  && s.statusActive,
+                isProcessing && s.statusProcessing,
+              ]}>
+                {statusText}
+              </Text>
+              {!isRecording && !isProcessing && <View style={s.statusDash} />}
+            </View>
           </Animated.View>
 
           {/* Transcript bubble */}
           {!!transcript && (
             <View style={s.transcriptBubble}>
+              <Text style={s.transcriptLabel}>{t('home.transcriptDetected')}</Text>
               <Text style={s.transcriptText}>"{transcript}"</Text>
             </View>
           )}
-        </View>
 
+        </View>
       </SafeAreaView>
 
-      {/* Always rendered — Sidebar manages its own mount/unmount for exit animation */}
       <Sidebar
         visible={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -205,28 +237,45 @@ const s = StyleSheet.create({
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderBottomWidth: 1, borderBottomColor: C.border,
   },
-  hamburgerBtn: { padding: 4, borderRadius: 8 },
-  brandName:    { fontSize: 18, fontWeight: '800', color: C.text, letterSpacing: -0.3 },
+  hamburgerBtn: {
+    backgroundColor: C.white, borderRadius: 12,
+    width: 40, height: 40,
+    justifyContent: 'center', alignItems: 'center',
+    ...shadow.sm,
+  },
+  brandName: { fontSize: 18, fontWeight: '800', color: C.primary, letterSpacing: -0.3 },
 
-  body: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 32 },
+  body: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 28 },
 
-  greetingBlock: { alignItems: 'center', gap: 4 },
-  greetingLabel: { fontSize: 15, color: C.textSub, fontWeight: '500' },
-  greetingName:  { fontSize: 30, fontWeight: '800', color: C.text, letterSpacing: -0.5 },
+  greetingBlock: { alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 8, borderRadius: 16, overflow: 'hidden' },
+  greetingBg:   { ...StyleSheet.absoluteFillObject, backgroundColor: C.bg, opacity: 0.60 },
+  greetingLabel: { fontSize: 20, color: C.primary, fontWeight: '600' },
+  greetingName:  { fontSize: 44, fontWeight: '800', color: C.text, letterSpacing: -1.2 },
+  subtitle:      { fontSize: 16, color: C.textSub, textAlign: 'center', lineHeight: 23, marginTop: 4 },
+  subtitleLine:  { width: 40, height: 2.5, borderRadius: 2, backgroundColor: C.primary, marginTop: 12 },
 
   micWrap: { alignItems: 'center' },
 
-  statusBlock:     { alignItems: 'center' },
-  statusText:      { fontSize: 15, color: C.textMuted, fontWeight: '500', textAlign: 'center' },
-  statusActive:    { color: C.error, fontWeight: '600' },
-  statusProcessing:{ color: C.primary, fontWeight: '600' },
+  statusBlock: { alignItems: 'center' },
+  statusRow:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  statusDash:  { width: 26, height: 1.5, borderRadius: 1, backgroundColor: C.primary, opacity: 0.5 },
+  statusText:       { fontSize: 15, color: C.textMuted, fontWeight: '500', textAlign: 'center' },
+  statusActive:     { color: C.error,   fontWeight: '700' },
+  statusProcessing: { color: C.primary, fontWeight: '700' },
 
   transcriptBubble: {
     backgroundColor: C.white, borderRadius: 16,
-    paddingHorizontal: 20, paddingVertical: 12,
-    maxWidth: '88%', ...shadow.sm,
+    paddingHorizontal: 20, paddingVertical: 14,
+    maxWidth: '90%', ...shadow.sm,
     borderWidth: 1, borderColor: C.border,
+    alignItems: 'center',
+  },
+  transcriptLabel: {
+    fontSize: 10, fontWeight: '700', color: C.primary,
+    letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 6,
   },
   transcriptText: { fontSize: 14, color: C.textSub, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
 });

@@ -26,10 +26,16 @@
   },
   "home": {
     "greeting": "नमस्ते, {{name}}",
+    "goodMorning": "सुप्रभात",
+    "goodAfternoon": "नमस्कार",
+    "goodEvening": "शुभ संध्या",
+    "subtitle": "मैं आपके भुगतान को आसान और सुरक्षित बनाने के लिए यहाँ हूं।",
     "balance": "वॉलेट बैलेंस",
     "tapToSpeak": "बोलने के लिए माइक दबाएं",
     "listening": "सुन रहा हूं...",
     "processing": "प्रोसेस हो रहा है...",
+    "statusIdle": "आज मैं आपकी कैसे मदद करूं?",
+    "transcriptDetected": "ट्रांसक्रिप्ट मिला",
     "pay": "भुगतान",
     "history": "इतिहास",
     "profile": "प्रोफ़ाइल"

@@ -24,6 +24,12 @@ const STEP_CONFIG: Record<Step, { title: string; sub: string }> = {
   confirmPin: { title: 'Confirm your PIN',      sub: 'Enter the same PIN again' },
 };
 
+const STEP_LABELS: Record<Step, string> = {
+  phone:      'Step 1 of 3 — Phone setup',
+  newPin:     'Step 2 of 3 — Secure code',
+  confirmPin: 'Step 3 of 3 — Code confirmation',
+};
+
 export default function SignUpScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
 
@@ -34,6 +40,7 @@ export default function SignUpScreen({ navigation }: Props) {
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState('');
   const [focused,    setFocused]    = useState(false);
+  const [isSuccess,  setIsSuccess]  = useState(false);
 
   const cardAnim  = useRef(new Animated.Value(0)).current;
   const fadeAnim  = useRef(new Animated.Value(1)).current;
@@ -72,9 +79,9 @@ export default function SignUpScreen({ navigation }: Props) {
     crossFade(() => { setStep('newPin'); setNewPin(''); });
   };
 
-  const activePin        = step === 'newPin' ? newPin : confirmPin;
-  const setActivePin     = step === 'newPin' ? setNewPin : setConfirmPin;
-  const activePinLength  = activePin.length;
+  const activePin       = step === 'newPin' ? newPin : confirmPin;
+  const setActivePin    = step === 'newPin' ? setNewPin : setConfirmPin;
+  const activePinLength = activePin.length;
 
   const handleKey = (key: string) => {
     if (loading) return;
@@ -122,6 +129,7 @@ export default function SignUpScreen({ navigation }: Props) {
     }
 
     setLoading(false);
+    setIsSuccess(true);
     // Supabase session update triggers App.tsx to navigate to ProfileSetup
   };
 
@@ -171,6 +179,7 @@ export default function SignUpScreen({ navigation }: Props) {
         <Animated.View style={[s.card, { opacity: cardAnim, transform: [{ translateY: cardY }], paddingBottom: insets.bottom + 16 }]}>
           <Animated.View style={{ opacity: fadeAnim }}>
 
+            <Text style={s.stepLabel}>{STEP_LABELS[step]}</Text>
             <Text style={s.cardTitle}>{STEP_CONFIG[step].title}</Text>
             <Text style={s.cardSub}>{STEP_CONFIG[step].sub}</Text>
 
@@ -219,7 +228,14 @@ export default function SignUpScreen({ navigation }: Props) {
 
                 {!!error && <Text style={[s.errorText, s.errorCenter]}>{error}</Text>}
 
-                {loading ? (
+                {isSuccess ? (
+                  <View style={s.successState}>
+                    <View style={s.successCircle}>
+                      <Text style={s.successCheck}>&#10003;</Text>
+                    </View>
+                    <Text style={s.successText}>Wallet Created Successfully!</Text>
+                  </View>
+                ) : loading ? (
                   <View style={s.padLoader}>
                     <ActivityIndicator size="large" color={C.primary} />
                     <Text style={s.loadingText}>Creating your account…</Text>
@@ -263,6 +279,7 @@ const s = StyleSheet.create({
   stepIndicator:  { flexDirection: 'row', gap: 6, marginTop: 16 },
 
   card:      { backgroundColor: C.white, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 28, paddingHorizontal: 28, flex: 1 },
+  stepLabel: { fontSize: 11, color: C.primary, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 6 },
   cardTitle: { fontSize: 20, fontWeight: '700', color: C.text, marginBottom: 4 },
   cardSub:   { fontSize: 14, color: C.textSub, marginBottom: 24, lineHeight: 20 },
 
@@ -294,6 +311,11 @@ const s = StyleSheet.create({
   keyGhost:{ backgroundColor: 'transparent', borderColor: 'transparent' },
   keyText: { fontSize: 24, fontWeight: '500', color: C.text },
   keyDel:  { fontSize: 22, color: C.primary },
+
+  successState:  { alignItems: 'center', paddingVertical: 40, gap: 16 },
+  successCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: C.success, justifyContent: 'center', alignItems: 'center', ...shadow.success },
+  successCheck:  { fontSize: 28, color: '#fff', fontWeight: '800' },
+  successText:   { fontSize: 15, color: C.success, fontWeight: '700' },
 });
 
 const si = StyleSheet.create({

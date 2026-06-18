@@ -38,12 +38,14 @@ export default function LandingScreen({ navigation }: Props) {
       <View style={s.dec2} />
       <View style={s.dec3} />
 
-      {/* ── Brand ── */}
+      {/* Brand */}
       <View style={s.center}>
         <Animated.View style={[s.logoWrap, { opacity: logoAnim, transform: [{ scale: logoScale }] }]}>
-          <View style={s.logoRing}>
-            <View style={s.logoCircle}>
-              <Text style={s.logoV}>V</Text>
+          <View style={s.logoOuter}>
+            <View style={s.logoInner}>
+              <View style={s.logoWhiteBox}>
+                <Text style={s.logoV}>V</Text>
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -54,7 +56,7 @@ export default function LandingScreen({ navigation }: Props) {
         </Animated.View>
       </View>
 
-      {/* ── Buttons ── */}
+      {/* Buttons */}
       <Animated.View style={[s.btnArea, { opacity: btnAnim, transform: [{ translateY: btnY }] }]}>
         <TouchableOpacity
           style={s.btnPrimary}
@@ -81,16 +83,44 @@ export default function LandingScreen({ navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: C.primary, justifyContent: 'space-between' },
+  root: { flex: 1, backgroundColor: C.primary, justifyContent: 'space-between' },
 
-  center:    { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 32 },
-  logoWrap:  { alignItems: 'center' },
-  logoRing:  { width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
-  logoCircle:{ width: 96,  height: 96,  borderRadius: 48, backgroundColor: 'rgba(255,255,255,0.14)', justifyContent: 'center', alignItems: 'center' },
-  logoV:     { fontSize: 46, fontWeight: '800', color: '#fff' },
+  center:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 32 },
+  logoWrap: { alignItems: 'center' },
+
+  logoOuter: {
+    width: 128,
+    height: 128,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoInner: {
+    width: 128,
+    height: 128,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.11)',
+    transform: [{ rotate: '12deg' }],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoWhiteBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: [{ rotate: '-12deg' }],
+  },
+  logoV: { fontSize: 46, fontWeight: '800', color: C.primary },
 
   textBlock: { alignItems: 'center', gap: 8 },
-  appName:   { fontSize: 44, fontWeight: '800', color: '#fff', letterSpacing: -1.2 },
+  appName:   { fontSize: 48, fontWeight: '800', color: '#fff', letterSpacing: -1.2 },
   tagline:   { fontSize: 15, color: 'rgba(255,255,255,0.55)', textAlign: 'center', lineHeight: 22 },
 
   dec1: { position: 'absolute', width: 340, height: 340, borderRadius: 170, backgroundColor: 'rgba(255,255,255,0.04)', top: -100, right: -110 },

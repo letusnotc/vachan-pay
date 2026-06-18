@@ -19,15 +19,16 @@ const phoneToEmail = (e164: string) => `vpay_${e164.replace('+', '')}@vpay.local
 export default function SignInScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
 
-  const [step,    setStep]    = useState<'phone' | 'pin'>('phone');
-  const [phone,   setPhone]   = useState('');
-  const [pin,     setPin]     = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
-  const [focused, setFocused] = useState(false);
+  const [step,      setStep]      = useState<'phone' | 'pin'>('phone');
+  const [phone,     setPhone]     = useState('');
+  const [pin,       setPin]       = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState('');
+  const [focused,   setFocused]   = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const cardAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const cardAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim  = useRef(new Animated.Value(1)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
   const e164 = `+91${phone.replace(/\s/g, '')}`;
@@ -78,7 +79,12 @@ export default function SignInScreen({ navigation }: Props) {
     const email = phoneToEmail(e164);
 
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: currentPin });
-    if (!signInErr) { setLoading(false); return; }
+    if (!signInErr) {
+      setLoading(false);
+      setIsSuccess(true);
+      // navigation happens automatically via App.tsx session listener after a brief moment
+      return;
+    }
 
     setLoading(false);
     setPin('');
@@ -110,6 +116,7 @@ export default function SignInScreen({ navigation }: Props) {
 
             {step === 'phone' ? (
               <View>
+                <Text style={s.stepLabel}>Step 1 of 2 — Identity</Text>
                 <Text style={s.cardTitle}>Mobile number</Text>
                 <Text style={s.cardSub}>Enter the number linked to your account</Text>
 
@@ -148,11 +155,15 @@ export default function SignInScreen({ navigation }: Props) {
 
             ) : (
               <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
-                <TouchableOpacity onPress={() => crossFade(() => { setStep('phone'); setPin(''); setError(''); })} style={s.backRow} activeOpacity={0.7}>
-                  <Text style={s.backArrow}>←</Text>
-                  <Text style={s.backPhone}>{e164}</Text>
+                <TouchableOpacity
+                  onPress={() => crossFade(() => { setStep('phone'); setPin(''); setError(''); })}
+                  style={s.backChip}
+                  activeOpacity={0.7}
+                >
+                  <Text style={s.backChipText}>← Change: +91 {phone}</Text>
                 </TouchableOpacity>
 
+                <Text style={s.stepLabel}>Step 2 of 2 — Secure code</Text>
                 <Text style={s.cardTitle}>Enter your PIN</Text>
                 <Text style={s.cardSub}>Your 6-digit security PIN</Text>
 
@@ -164,7 +175,14 @@ export default function SignInScreen({ navigation }: Props) {
 
                 {!!error && <Text style={[s.errorText, s.errorCenter]}>{error}</Text>}
 
-                {loading ? (
+                {isSuccess ? (
+                  <View style={s.successState}>
+                    <View style={s.successCircle}>
+                      <Text style={s.successCheck}>&#10003;</Text>
+                    </View>
+                    <Text style={s.successText}>Authentication verified!</Text>
+                  </View>
+                ) : loading ? (
                   <View style={s.padLoader}>
                     <ActivityIndicator size="large" color={C.primary} />
                     <Text style={s.loadingText}>Signing you in…</Text>
@@ -207,6 +225,7 @@ const s = StyleSheet.create({
   heroSub:     { fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 4 },
 
   card:      { backgroundColor: C.white, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 28, paddingHorizontal: 28, flex: 1 },
+  stepLabel: { fontSize: 11, color: C.primary, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 6 },
   cardTitle: { fontSize: 20, fontWeight: '700', color: C.text, marginBottom: 4 },
   cardSub:   { fontSize: 14, color: C.textSub, marginBottom: 24, lineHeight: 20 },
 
@@ -226,9 +245,8 @@ const s = StyleSheet.create({
   linkText:    { fontSize: 14, color: C.textSub },
   linkEmphasis:{ color: C.primary, fontWeight: '600' },
 
-  backRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 18, gap: 8 },
-  backArrow: { fontSize: 18, color: C.textSub },
-  backPhone: { fontSize: 15, fontWeight: '600', color: C.primary },
+  backChip:     { flexDirection: 'row', alignItems: 'center', backgroundColor: C.primaryBg, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 100, alignSelf: 'flex-start', marginBottom: 20 },
+  backChipText: { fontSize: 12, color: C.primary, fontWeight: '700' },
 
   dots:     { flexDirection: 'row', justifyContent: 'center', gap: 16, marginBottom: 28, marginTop: 4 },
   dot:      { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: C.border, backgroundColor: 'transparent' },
@@ -242,4 +260,9 @@ const s = StyleSheet.create({
   keyGhost:{ backgroundColor: 'transparent', borderColor: 'transparent' },
   keyText: { fontSize: 24, fontWeight: '500', color: C.text },
   keyDel:  { fontSize: 22, color: C.primary },
+
+  successState:  { alignItems: 'center', paddingVertical: 40, gap: 16 },
+  successCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: C.success, justifyContent: 'center', alignItems: 'center', ...shadow.success },
+  successCheck:  { fontSize: 28, color: '#fff', fontWeight: '800' },
+  successText:   { fontSize: 15, color: C.success, fontWeight: '700' },
 });

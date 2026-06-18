@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import {
   TouchableOpacity, ActivityIndicator, StyleSheet,
-  Animated, View, Text, Easing,
+  Animated, View, Easing,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { C, shadow } from '../theme';
 
-const BTN       = 80;
-const CONTAINER = 220;
+const BTN       = 110;
+const CONTAINER = 280;
 const OFFSET    = (CONTAINER - BTN) / 2;
 
 interface Props {
@@ -70,21 +71,47 @@ export default function VoiceButton({ isRecording, isProcessing, onPress }: Prop
   });
 
   const btnBg = isRecording ? '#EF4444' : C.primary;
+
+  const btnBorderColor = isRecording
+    ? 'rgba(239,68,68,0.3)'
+    : isProcessing
+      ? 'rgba(91,79,232,0.25)'
+      : 'rgba(91,79,232,0.15)';
+
   const btnShd = isRecording
     ? { shadowColor: '#EF4444', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 20, elevation: 10 }
     : shadow.primary;
 
+  const showRipples = isRecording || isProcessing;
+
   return (
     <TouchableOpacity onPress={onPress} disabled={isProcessing} activeOpacity={0.88}>
       <View style={{ width: CONTAINER, height: CONTAINER, alignItems: 'center', justifyContent: 'center' }}>
-        <Animated.View style={ringStyle(r1)} />
-        <Animated.View style={ringStyle(r2)} />
-        <Animated.View style={ringStyle(r3)} />
+        {showRipples && (
+          <>
+            <Animated.View style={ringStyle(r1)} />
+            <Animated.View style={ringStyle(r2)} />
+            <Animated.View style={ringStyle(r3)} />
+          </>
+        )}
 
-        <Animated.View style={[s.btn, { backgroundColor: btnBg, ...btnShd }, { transform: [{ scale: pulse }] }]}>
+        <Animated.View
+          style={[
+            s.btn,
+            {
+              backgroundColor: btnBg,
+              borderWidth: 4,
+              borderColor: btnBorderColor,
+              ...btnShd,
+            },
+            { transform: [{ scale: pulse }] },
+          ]}
+        >
           {isProcessing
             ? <ActivityIndicator size="large" color="#fff" />
-            : <Text style={s.icon}>{isRecording ? '◼' : '🎙'}</Text>
+            : isRecording
+              ? <View style={s.stopSquare} />
+              : <Ionicons name="mic" size={44} color="#fff" />
           }
         </Animated.View>
       </View>
@@ -93,6 +120,17 @@ export default function VoiceButton({ isRecording, isProcessing, onPress }: Prop
 }
 
 const s = StyleSheet.create({
-  btn:  { width: BTN, height: BTN, borderRadius: BTN / 2, justifyContent: 'center', alignItems: 'center' },
-  icon: { fontSize: 30 },
+  btn: {
+    width: BTN,
+    height: BTN,
+    borderRadius: BTN / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stopSquare: {
+    width: 30,
+    height: 30,
+    borderRadius: 5,
+    backgroundColor: '#fff',
+  },
 });
