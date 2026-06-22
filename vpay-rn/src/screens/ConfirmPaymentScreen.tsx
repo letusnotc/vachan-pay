@@ -91,9 +91,11 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
   const receiverName  = route.params?.receiverName  ?? '';
   const [receiverPhone, setReceiverPhone] = useState(route.params?.receiverPhone ?? '');
   const [amount,        setAmount]        = useState(route.params?.amount ? String(route.params.amount) : '');
-  const [loading,  setLoading]  = useState(false);
-  const [success,  setSuccess]  = useState(false);
-  const [focused,  setFocused]  = useState<string | null>(null);
+  const [loading,       setLoading]       = useState(false);
+  const [success,       setSuccess]       = useState(false);
+  const [focused,       setFocused]       = useState<string | null>(null);
+  const [editingAmount, setEditingAmount] = useState(false);
+  const [draftAmount,   setDraftAmount]   = useState(amount);
 
   const mountAnim = useRef(new Animated.Value(0)).current;
 
@@ -161,16 +163,41 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
             {/* Recipient */}
             <RecipientAvatar name={receiverName} />
 
-            {/* Amount display (voice prefilled) */}
-            {isVoicePrefilled && formattedAmount ? (
+            {/* Amount display (voice prefilled) — tappable to edit */}
+            {isVoicePrefilled && (
               <View style={s.amountCard}>
                 <Text style={s.parsedLabel}>PARSED AMOUNT</Text>
-                <Text style={s.amountLarge}>{formattedAmount}</Text>
+
+                {editingAmount ? (
+                  <TextInput
+                    style={s.amountInput}
+                    value={draftAmount}
+                    onChangeText={setDraftAmount}
+                    keyboardType="decimal-pad"
+                    autoFocus
+                    selectTextOnFocus
+                    onBlur={() => {
+                      const parsed = parseFloat(draftAmount);
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setAmount(String(parsed));
+                      } else {
+                        setDraftAmount(amount);
+                      }
+                      setEditingAmount(false);
+                    }}
+                  />
+                ) : (
+                  <TouchableOpacity onPress={() => { setDraftAmount(amount); setEditingAmount(true); }} activeOpacity={0.7}>
+                    <Text style={s.amountLarge}>{formattedAmount ?? `₹${amount}`}</Text>
+                    <Text style={s.tapToEdit}>Tap to change</Text>
+                  </TouchableOpacity>
+                )}
+
                 <View style={s.voiceIntentBadge}>
                   <Text style={s.voiceIntentText}>Voice Intent Structured</Text>
                 </View>
               </View>
-            ) : null}
+            )}
 
             {/* Manual input card */}
             {!isVoicePrefilled && (
@@ -237,7 +264,9 @@ const s = StyleSheet.create({
 
   amountCard:       { backgroundColor: C.white, borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 24, ...shadow.md },
   parsedLabel:      { fontSize: 10, fontWeight: '700', color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 },
-  amountLarge:      { fontSize: 48, fontWeight: '800', color: C.primary, letterSpacing: -1.5 },
+  amountLarge:      { fontSize: 48, fontWeight: '800', color: C.primary, letterSpacing: -1.5, textAlign: 'center' },
+  amountInput:      { fontSize: 44, fontWeight: '800', color: C.primary, letterSpacing: -1.5, textAlign: 'center', borderBottomWidth: 2, borderBottomColor: C.primary, paddingVertical: 4, minWidth: 160 },
+  tapToEdit:        { fontSize: 11, color: C.textMuted, textAlign: 'center', marginTop: 4 },
   voiceIntentBadge: { marginTop: 12, backgroundColor: C.successBg, borderRadius: 100, paddingHorizontal: 12, paddingVertical: 4 },
   voiceIntentText:  { fontSize: 11, fontWeight: '700', color: C.success },
 

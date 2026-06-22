@@ -16,7 +16,17 @@ exports.transcribeAudio = async (req, res, next) => {
     });
     form.append('model',           GROQ_MODEL);
     form.append('response_format', 'json');
-    // No language hint — let Groq auto-detect Hindi/English/mixed
+
+    // Pass language hint so Whisper uses Devanagari (not Urdu/Arabic script)
+    const lang = req.body.language;
+    if (lang === 'hi') {
+      form.append('language', 'hi');
+      // Prime Whisper for Hindi financial vocab and number words
+      form.append('prompt', 'UPI भुगतान ऐप। राशि रुपये में। जैसे: दस, बीस, पचास, सौ, पाँच सौ, हज़ार, उनसठ, उनहत्तर।');
+    } else {
+      form.append('language', 'en');
+      form.append('prompt', 'UPI payment app. Amount in rupees. For example: ten, fifty, hundred, five hundred, one thousand.');
+    }
 
     const response = await axios.post(GROQ_WHISPER_URL, form, {
       headers: {

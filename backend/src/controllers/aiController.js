@@ -34,8 +34,13 @@ const FALLBACK = {
 
 exports.analyzeTranscript = async (req, res, next) => {
   try {
-    const { transcript } = req.body;
+    const { transcript, context } = req.body;
     if (!transcript) return res.status(400).json({ error: 'transcript is required' });
+
+    const hasContext = context && (context.name || context.amount);
+    const contextLine = hasContext
+      ? `\nPreviously understood from this conversation: name="${context.name ?? 'unknown'}", amount=${context.amount ?? 'unknown'}. Merge with the new input — do NOT discard prior values unless the user explicitly changes them.`
+      : '';
 
     const prompt = `You are a payment assistant for an Indian UPI app. The user speaks Hindi, English, or a mix of both.
 Parse the voice command and respond ONLY with valid JSON (no markdown, no explanation):
@@ -52,6 +57,7 @@ Rules:
 - Amounts may be spoken as "pachaas", "five hundred", "500 rupees", "₹500" — normalise to a number
 - Hindi examples: "Rahul ko pachaas rupaye bhejo" → make_payment, name: Rahul, amount: 50
 - "mera balance check karo" → check_balance
+- If context is provided, treat this as a follow-up answer and merge it with prior values${contextLine}
 
 Voice command: "${transcript}"`;
 
@@ -67,6 +73,14 @@ Voice command: "${transcript}"`;
     if (!parsed) {
       console.error('[AI] Could not parse Gemma response:', raw?.slice(0, 200));
       return res.json(FALLBACK);
+    }
+
+    // Frontend safety-net merge: if Gemma dropped a context value, restore it
+    if (hasContext) {
+      parsed.parameters = parsed.parameters ?? {};
+      if (!parsed.parameters.name   && context.name)   parsed.parameters.name   = context.name;
+      if (!parsed.parameters.amount && context.amount) parsed.parameters.amount = context.amount;
+      if (parsed.parameters.name && parsed.parameters.amount) parsed.intent = 'make_payment';
     }
 
     if (

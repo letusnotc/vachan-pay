@@ -13,10 +13,11 @@ const OFFSET    = (CONTAINER - BTN) / 2;
 interface Props {
   isRecording:  boolean;
   isProcessing: boolean;
-  onPress:      () => void;
+  onPressIn:    () => void;
+  onPressOut:   () => void;
 }
 
-export default function VoiceButton({ isRecording, isProcessing, onPress }: Props) {
+export default function VoiceButton({ isRecording, isProcessing, onPressIn, onPressOut }: Props) {
   const pulse = useRef(new Animated.Value(1)).current;
   const r1    = useRef(new Animated.Value(0)).current;
   const r2    = useRef(new Animated.Value(0)).current;
@@ -57,7 +58,16 @@ export default function VoiceButton({ isRecording, isProcessing, onPress }: Prop
     }
   }, [isRecording]);
 
-  const ringColor = isRecording ? '#EF4444' : C.primary;
+  const ringColor  = isRecording ? C.error : C.primary;
+  const btnBg      = isRecording ? C.error : C.primary;
+  const btnBorder  = isRecording
+    ? 'rgba(239,68,68,0.3)'
+    : isProcessing
+      ? 'rgba(91,79,232,0.25)'
+      : 'rgba(91,79,232,0.15)';
+  const btnShd = isRecording
+    ? { shadowColor: '#EF4444', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 20, elevation: 10 }
+    : shadow.primary;
 
   const ringStyle = (v: Animated.Value) => ({
     position: 'absolute' as const,
@@ -70,24 +80,15 @@ export default function VoiceButton({ isRecording, isProcessing, onPress }: Prop
     transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [1, 3.0] }) }],
   });
 
-  const btnBg = isRecording ? '#EF4444' : C.primary;
-
-  const btnBorderColor = isRecording
-    ? 'rgba(239,68,68,0.3)'
-    : isProcessing
-      ? 'rgba(91,79,232,0.25)'
-      : 'rgba(91,79,232,0.15)';
-
-  const btnShd = isRecording
-    ? { shadowColor: '#EF4444', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 20, elevation: 10 }
-    : shadow.primary;
-
-  const showRipples = isRecording || isProcessing;
-
   return (
-    <TouchableOpacity onPress={onPress} disabled={isProcessing} activeOpacity={0.88}>
+    <TouchableOpacity
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      disabled={isProcessing}
+      activeOpacity={0.88}
+    >
       <View style={{ width: CONTAINER, height: CONTAINER, alignItems: 'center', justifyContent: 'center' }}>
-        {showRipples && (
+        {(isRecording || isProcessing) && (
           <>
             <Animated.View style={ringStyle(r1)} />
             <Animated.View style={ringStyle(r2)} />
@@ -98,20 +99,13 @@ export default function VoiceButton({ isRecording, isProcessing, onPress }: Prop
         <Animated.View
           style={[
             s.btn,
-            {
-              backgroundColor: btnBg,
-              borderWidth: 4,
-              borderColor: btnBorderColor,
-              ...btnShd,
-            },
+            { backgroundColor: btnBg, borderWidth: 4, borderColor: btnBorder, ...btnShd },
             { transform: [{ scale: pulse }] },
           ]}
         >
           {isProcessing
             ? <ActivityIndicator size="large" color="#fff" />
-            : isRecording
-              ? <View style={s.stopSquare} />
-              : <Ionicons name="mic" size={44} color="#fff" />
+            : <Ionicons name="mic" size={44} color="#fff" />
           }
         </Animated.View>
       </View>
@@ -121,16 +115,9 @@ export default function VoiceButton({ isRecording, isProcessing, onPress }: Prop
 
 const s = StyleSheet.create({
   btn: {
-    width: BTN,
-    height: BTN,
+    width: BTN, height: BTN,
     borderRadius: BTN / 2,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  stopSquare: {
-    width: 30,
-    height: 30,
-    borderRadius: 5,
-    backgroundColor: '#fff',
   },
 });

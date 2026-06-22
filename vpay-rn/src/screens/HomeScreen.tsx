@@ -9,17 +9,19 @@ import { useFocusEffect }            from '@react-navigation/native';
 import { useTranslation }            from 'react-i18next';
 import * as Contacts                 from 'expo-contacts';
 
-import { useVoice }        from '../hooks/useVoice';
-import { useStore }        from '../store/store';
-import { api }             from '../lib/api';
-import { normalizePhone }  from '../utils/phone';
-import VoiceButton         from '../components/VoiceButton';
-import LanguageSwitcher    from '../components/LanguageSwitcher';
-import Sidebar             from '../components/Sidebar';
-import { RootStackParamList } from '../../App';
-import { C, shadow } from '../theme';
+import { useVoice, PendingContext }  from '../hooks/useVoice';
+import { useStore }                  from '../store/store';
+import { api }                       from '../lib/api';
+import { normalizePhone }            from '../utils/phone';
+import VoiceButton                   from '../components/VoiceButton';
+import LanguageSwitcher              from '../components/LanguageSwitcher';
+import Sidebar                       from '../components/Sidebar';
+import { RootStackParamList }        from '../../App';
+import { C, shadow }                 from '../theme';
 
 type Props = { navigation: NativeStackNavigationProp<RootStackParamList, 'Home'> };
+
+type Contact = Contacts.Contact & { phoneNumbers: NonNullable<Contacts.Contact['phoneNumbers']> };
 
 function getGreeting(t: (k: string) => string) {
   const h = new Date().getHours();
@@ -27,31 +29,6 @@ function getGreeting(t: (k: string) => string) {
   if (h < 17) return t('home.goodAfternoon');
   return t('home.goodEvening');
 }
-
-
-const { width: SW, height: SH } = Dimensions.get('window');
-const DOT_GAP = 28;
-
-function DotGrid() {
-  const cols = Math.ceil(SW / DOT_GAP);
-  const rows = Math.ceil(SH / DOT_GAP);
-  const dots = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      dots.push(
-        <View
-          key={`${r}-${c}`}
-          style={[dg.dot, { top: r * DOT_GAP, left: c * DOT_GAP }]}
-        />
-      );
-    }
-  }
-  return <View style={StyleSheet.absoluteFill} pointerEvents="none">{dots}</View>;
-}
-
-const dg = StyleSheet.create({
-  dot: { position: 'absolute', width: 3, height: 3, borderRadius: 2, backgroundColor: 'rgba(91,79,232,0.25)' },
-});
 
 function HamburgerIcon() {
   return (
@@ -68,14 +45,44 @@ const hb = StyleSheet.create({
   line: { width: 22, height: 2.5, backgroundColor: C.text, borderRadius: 2 },
 });
 
+const { width: SW, height: SH } = Dimensions.get('window');
+const DOT_GAP = 28;
+
+function DotGrid() {
+  const cols = Math.ceil(SW / DOT_GAP);
+  const rows = Math.ceil(SH / DOT_GAP);
+  const dots = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      dots.push(
+        <View key={`${r}-${c}`} style={[dg.dot, { top: r * DOT_GAP, left: c * DOT_GAP }]} />
+      );
+    }
+  }
+  return <View style={StyleSheet.absoluteFill} pointerEvents="none">{dots}</View>;
+}
+
+const dg = StyleSheet.create({
+  dot: { position: 'absolute', width: 3, height: 3, borderRadius: 2, backgroundColor: 'rgba(91,79,232,0.25)' },
+});
+
 export default function HomeScreen({ navigation }: Props) {
   const { t }       = useTranslation();
   const { profile } = useStore();
 
-  const { isRecording, isProcessing, transcript, startRecording, stopAndProcess, speak } = useVoice();
+  const {
+    isRecording, isProcessing, transcript,
+    startRecording, stopAndProcess, stopAndProcessChoice, speak,
+  } = useVoice();
 
-  const [balance,     setBalance]     = useState<number>(profile?.wallet_balance ?? 0);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [balance,         setBalance]         = useState<number>(profile?.wallet_balance ?? 0);
+  const [sidebarOpen,     setSidebarOpen]     = useState(false);
+  const [pendingContext,  setPendingContext]   = useState<PendingContext | null>(null);
+  const [pendingContacts, setPendingContacts] = useState<Contact[] | null>(null);
+  const [pendingAmount,   setPendingAmount]   = useState<number | null>(null);
+
+  // 'intent' = normal flow, 'choice' = picking between multiple contacts
+  const modeRef = useRef<'intent' | 'choice'>('intent');
 
   const mountAnim = useRef(new Animated.Value(0)).current;
   const micAnim   = useRef(new Animated.Value(0)).current;
@@ -96,28 +103,65 @@ export default function HomeScreen({ navigation }: Props) {
 
   useFocusEffect(useCallback(() => { fetchBalance(); }, [fetchBalance]));
 
-  const handleVoicePress = async () => {
-    if (isRecording) {
-      const result = await stopAndProcess();
-      if (!result) return;
-      const { intent, parameters, clarification_message } = result;
-      if (clarification_message) { speak(clarification_message); return; }
-      if (intent === 'check_balance') {
-        speak(t('voice.balance', { amount: balance.toFixed(2) }));
-        navigation.navigate('Balance');
-        return;
-      }
-      if (intent === 'check_history') { navigation.navigate('History'); return; }
-      if (intent === 'make_payment' && parameters.name && parameters.amount) {
-        await resolveContactAndNavigate(parameters.name, parameters.amount);
-        return;
-      }
-      speak(t('voice.unknown'));
+  // ── Hold-to-talk handlers ──────────────────────────────────────────────────
+
+  const handleMicPressIn = async () => {
+    await startRecording();
+  };
+
+  const handleMicPressOut = async () => {
+    if (modeRef.current === 'choice') {
+      await handleChoiceRelease();
     } else {
-      const ok = await startRecording();
-      if (ok) speak(t('voice.listening'));
+      await handleIntentRelease();
     }
   };
+
+  // ── Intent flow ───────────────────────────────────────────────────────────
+
+  const handleIntentRelease = async () => {
+    const result = await stopAndProcess(pendingContext ?? undefined);
+    if (!result) return;
+
+    const { intent, parameters, clarification_message } = result;
+
+    if (intent === 'check_balance') {
+      speak(t('voice.balance', { amount: balance.toFixed(2) }));
+      navigation.navigate('Balance');
+      setPendingContext(null);
+      return;
+    }
+
+    if (intent === 'check_history') {
+      navigation.navigate('History');
+      setPendingContext(null);
+      return;
+    }
+
+    if (intent === 'make_payment') {
+      // Frontend safety merge with pendingContext
+      const name   = parameters?.name   ?? pendingContext?.name   ?? null;
+      const amount = parameters?.amount ?? pendingContext?.amount ?? null;
+
+      if (name && amount) {
+        // Both present — resolve contact
+        setPendingContext(null);
+        await resolveContactAndNavigate(name, amount);
+        return;
+      }
+
+      // Partial info — save what we have and ask for the rest
+      setPendingContext({ name, amount });
+      speak(clarification_message || t('voice.unknown'));
+      return;
+    }
+
+    // Unknown — clear context, inform user
+    setPendingContext(null);
+    speak(clarification_message || t('voice.unknown'));
+  };
+
+  // ── Contact resolution with VPay check ───────────────────────────────────
 
   const resolveContactAndNavigate = async (name: string, amount: number) => {
     const { status } = await Contacts.requestPermissionsAsync();
@@ -127,38 +171,93 @@ export default function HomeScreen({ navigation }: Props) {
       fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
     });
 
-    const matches = contacts
+    const matches = (contacts as Contact[])
       .filter(c => c.name?.toLowerCase().includes(name.toLowerCase()))
-      .filter(c => c.phoneNumbers && c.phoneNumbers.length > 0);
+      .filter(c => c.phoneNumbers?.length > 0);
 
-    if (matches.length === 0) { speak(t('voice.contactNotFound', { name })); return; }
-
-    if (matches.length === 1) {
-      const phone = normalizePhone(matches[0].phoneNumbers![0].number!);
-      speak(t('voice.confirmPayment', { name: matches[0].name, amount }));
-      navigation.navigate('ConfirmPayment', { receiverName: matches[0].name!, receiverPhone: phone, amount });
+    if (matches.length === 0) {
+      speak(t('voice.contactNotFound', { name }));
       return;
     }
 
-    const options = matches.slice(0, 3).map((c, i) => ({
-      text: `${i + 1}. ${c.name}`,
-      onPress: () => {
-        const phone = normalizePhone(c.phoneNumbers![0].number!);
-        navigation.navigate('ConfirmPayment', { receiverName: c.name!, receiverPhone: phone, amount });
-      },
-    }));
-    options.push({ text: t('common.back'), onPress: () => {} });
-    Alert.alert(t('payment.selectRecipient'), '', options);
+    if (matches.length === 1) {
+      await navigateIfOnVPay(matches[0], amount);
+      return;
+    }
+
+    // Multiple matches — start choice flow
+    const top3 = matches.slice(0, 3) as Contact[];
+    setPendingContacts(top3);
+    setPendingAmount(amount);
+    modeRef.current = 'choice';
+
+    const optionStr = top3.map((c, i) => `${i + 1}. ${c.name}`).join(', ');
+    speak(`I found multiple contacts: ${optionStr}. Hold the mic and say the number.`);
   };
 
-  const firstName     = profile?.name?.split(' ')[0] ?? '';
-  const greetingText  = getGreeting(t);
-  const micScale      = micAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
+  // Check the receiver is on VPay before navigating
+  const navigateIfOnVPay = async (contact: Contact, amount: number) => {
+    const phone = normalizePhone(contact.phoneNumbers[0].number!);
+    try {
+      await api.get(`/payment/lookup/${phone}`);
+    } catch (e: any) {
+      if (e?.response?.status === 404) {
+        speak(`${contact.name} is not on VPay yet.`);
+        return;
+      }
+    }
+    speak(t('voice.confirmPayment', { name: contact.name, amount }));
+    navigation.navigate('ConfirmPayment', {
+      receiverName:  contact.name!,
+      receiverPhone: phone,
+      amount,
+    });
+  };
+
+  // ── Choice flow ───────────────────────────────────────────────────────────
+
+  const handleChoiceRelease = async () => {
+    modeRef.current = 'intent';
+
+    if (!pendingContacts || !pendingAmount) {
+      setPendingContacts(null);
+      setPendingAmount(null);
+      return;
+    }
+
+    const choice = await stopAndProcessChoice();
+
+    if (!choice || choice < 1 || choice > pendingContacts.length) {
+      speak("I didn't catch that. Hold the mic and say 1, 2, or 3.");
+      modeRef.current = 'choice'; // stay in choice mode
+      return;
+    }
+
+    const chosen = pendingContacts[choice - 1];
+    const amount = pendingAmount;
+
+    setPendingContacts(null);
+    setPendingAmount(null);
+
+    await navigateIfOnVPay(chosen, amount);
+  };
+
+  // ── Status text ───────────────────────────────────────────────────────────
+
+  const firstName    = profile?.name?.split(' ')[0] ?? '';
+  const greetingText = getGreeting(t);
+  const micScale     = micAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
 
   const statusText = isProcessing
     ? t('home.processing')
     : isRecording
     ? t('home.listening')
+    : pendingContacts
+    ? 'Hold mic and say 1, 2 or 3'
+    : pendingContext?.amount && !pendingContext?.name
+    ? `Who gets ₹${pendingContext.amount}? Hold mic to answer`
+    : pendingContext?.name && !pendingContext?.amount
+    ? `How much for ${pendingContext.name}? Hold mic to answer`
     : t('home.statusIdle');
 
   return (
@@ -192,7 +291,8 @@ export default function HomeScreen({ navigation }: Props) {
             <VoiceButton
               isRecording={isRecording}
               isProcessing={isProcessing}
-              onPress={handleVoicePress}
+              onPressIn={handleMicPressIn}
+              onPressOut={handleMicPressOut}
             />
           </Animated.View>
 
@@ -204,6 +304,7 @@ export default function HomeScreen({ navigation }: Props) {
                 s.statusText,
                 isRecording  && s.statusActive,
                 isProcessing && s.statusProcessing,
+                !!pendingContext && s.statusPending,
               ]}>
                 {statusText}
               </Text>
@@ -265,6 +366,7 @@ const s = StyleSheet.create({
   statusText:       { fontSize: 15, color: C.textMuted, fontWeight: '500', textAlign: 'center' },
   statusActive:     { color: C.error,   fontWeight: '700' },
   statusProcessing: { color: C.primary, fontWeight: '700' },
+  statusPending:    { color: C.primary, fontWeight: '600' },
 
   transcriptBubble: {
     backgroundColor: C.white, borderRadius: 16,
