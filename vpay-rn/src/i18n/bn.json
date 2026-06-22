@@ -1,0 +1,87 @@
+{
+  "login": {
+    "title": "VPay-তে আপনাকে স্বাগতম",
+    "subtitle": "ভয়েস দিয়ে পেমেন্ট করুন",
+    "phonePlaceholder": "ফোন নম্বর (১০ সংখ্যা)",
+    "sendOtp": "OTP পাঠান",
+    "sending": "পাঠানো হচ্ছে...",
+    "errorEmpty": "ফোন নম্বর দিন",
+    "errorInvalid": "বৈধ ১০-সংখ্যার নম্বর দিন"
+  },
+  "otp": {
+    "title": "OTP দিন",
+    "subtitle": "{{phone}}-এ পাঠানো হয়েছে",
+    "placeholder": "৬-সংখ্যার OTP",
+    "verify": "যাচাই করুন",
+    "verifying": "যাচাই হচ্ছে...",
+    "resend": "OTP আবার পাঠান",
+    "resendIn": "{{sec}} সেকেন্ডে আবার পাঠান"
+  },
+  "profileSetup": {
+    "title": "প্রোফাইল তৈরি করুন",
+    "namePlaceholder": "পুরো নাম",
+    "emailPlaceholder": "ইমেইল (ঐচ্ছিক)",
+    "save": "চালিয়ে যান",
+    "saving": "সংরক্ষণ হচ্ছে..."
+  },
+  "home": {
+    "greeting": "হ্যালো, {{name}}",
+    "goodMorning": "সুপ্রভাত",
+    "goodAfternoon": "শুভ অপরাহ্ন",
+    "goodEvening": "শুভ সন্ধ্যা",
+    "subtitle": "আপনার পেমেন্ট সহজ ও নিরাপদ করতে আমি এখানে আছি।",
+    "balance": "ওয়ালেট ব্যালেন্স",
+    "tapToSpeak": "কথা বলতে মাইক চাপুন",
+    "listening": "শুনছি...",
+    "processing": "প্রক্রিয়া করা হচ্ছে...",
+    "statusIdle": "আজ আমি কীভাবে সাহায্য করতে পারি?",
+    "transcriptDetected": "ট্রান্সক্রিপ্ট পাওয়া গেছে",
+    "pay": "পেমেন্ট",
+    "history": "ইতিহাস",
+    "profile": "প্রোফাইল"
+  },
+  "payment": {
+    "title": "পেমেন্ট নিশ্চিত করুন",
+    "to": "প্রাপক",
+    "amount": "পরিমাণ",
+    "confirm": "নিশ্চিত করুন",
+    "cancel": "বাতিল করুন",
+    "sending": "পাঠানো হচ্ছে...",
+    "success": "₹{{amount}} {{name}}-কে পাঠানো হয়েছে!",
+    "selectRecipient": "প্রাপক বেছে নিন",
+    "receiverPhone": "প্রাপকের ফোন",
+    "amountLabel": "পরিমাণ (₹)"
+  },
+  "balance": {
+    "title": "আপনার ব্যালেন্স",
+    "available": "পাওয়া যাচ্ছে ব্যালেন্স",
+    "addMoney": "টাকা যোগ করুন"
+  },
+  "history": {
+    "title": "লেনদেন",
+    "empty": "এখনো কোনো লেনদেন নেই",
+    "sent": "পাঠানো",
+    "received": "পাওয়া"
+  },
+  "profile": {
+    "title": "প্রোফাইল",
+    "language": "ভাষা",
+    "signOut": "সাইন আউট",
+    "phone": "ফোন"
+  },
+  "voice": {
+    "listening": "আমি শুনছি...",
+    "balance": "আপনার ব্যালেন্স ₹{{amount}}",
+    "confirmPayment": "{{name}}-কে ₹{{amount}} পাঠানো হচ্ছে। নিশ্চিত করতে Confirm চাপুন।",
+    "contactNotFound": "{{name}} আপনার পরিচিতিতে পাওয়া যায়নি।",
+    "contactsPermissionDenied": "পরিচিতির অনুমতি দেওয়া হয়নি।",
+    "unknown": "দুঃখিত, আমি বুঝতে পারিনি। আবার বলুন।",
+    "error": "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।"
+  },
+  "common": {
+    "back": "পেছনে",
+    "error": "ত্রুটি",
+    "ok": "ঠিক আছে",
+    "loading": "লোড হচ্ছে..."
+  }
+}

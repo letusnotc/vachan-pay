@@ -1,0 +1,87 @@
+{
+  "login": {
+    "title": "VPay ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ",
+    "subtitle": "ਆਵਾਜ਼ ਨਾਲ ਭੁਗਤਾਨ ਕਰੋ",
+    "phonePlaceholder": "ਫ਼ੋਨ ਨੰਬਰ (10 ਅੰਕ)",
+    "sendOtp": "OTP ਭੇਜੋ",
+    "sending": "ਭੇਜ ਰਹੇ ਹਾਂ...",
+    "errorEmpty": "ਕਿਰਪਾ ਕਰਕੇ ਫ਼ੋਨ ਨੰਬਰ ਦਰਜ ਕਰੋ",
+    "errorInvalid": "ਸਹੀ 10-ਅੰਕੀ ਨੰਬਰ ਦਰਜ ਕਰੋ"
+  },
+  "otp": {
+    "title": "OTP ਦਰਜ ਕਰੋ",
+    "subtitle": "{{phone}} ਤੇ ਭੇਜਿਆ",
+    "placeholder": "6-ਅੰਕੀ OTP",
+    "verify": "ਪੁਸ਼ਟੀ ਕਰੋ",
+    "verifying": "ਪੁਸ਼ਟੀ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ...",
+    "resend": "OTP ਦੁਬਾਰਾ ਭੇਜੋ",
+    "resendIn": "{{sec}} ਸਕਿੰਟ ਵਿੱਚ ਦੁਬਾਰਾ ਭੇਜੋ"
+  },
+  "profileSetup": {
+    "title": "ਪ੍ਰੋਫਾਈਲ ਸੈੱਟ ਕਰੋ",
+    "namePlaceholder": "ਪੂਰਾ ਨਾਮ",
+    "emailPlaceholder": "ਈਮੇਲ (ਵਿਕਲਪਿਕ)",
+    "save": "ਜਾਰੀ ਰੱਖੋ",
+    "saving": "ਸੁਰੱਖਿਅਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+  },
+  "home": {
+    "greeting": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, {{name}}",
+    "goodMorning": "ਸ਼ੁਭ ਸਵੇਰ",
+    "goodAfternoon": "ਨਮਸਕਾਰ",
+    "goodEvening": "ਸ਼ੁਭ ਸ਼ਾਮ",
+    "subtitle": "ਤੁਹਾਡੀ ਭੁਗਤਾਨ ਨੂੰ ਆਸਾਨ ਅਤੇ ਸੁਰੱਖਿਅਤ ਬਣਾਉਣ ਲਈ ਮੈਂ ਇੱਥੇ ਹਾਂ।",
+    "balance": "ਵਾਲਿਟ ਬੈਲੇਂਸ",
+    "tapToSpeak": "ਬੋਲਣ ਲਈ ਮਾਈਕ ਦਬਾਓ",
+    "listening": "ਸੁਣ ਰਿਹਾ ਹਾਂ...",
+    "processing": "ਪ੍ਰੋਸੈੱਸ ਹੋ ਰਿਹਾ ਹੈ...",
+    "statusIdle": "ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?",
+    "transcriptDetected": "ਟ੍ਰਾਂਸਕ੍ਰਿਪਟ ਮਿਲਿਆ",
+    "pay": "ਭੁਗਤਾਨ",
+    "history": "ਇਤਿਹਾਸ",
+    "profile": "ਪ੍ਰੋਫਾਈਲ"
+  },
+  "payment": {
+    "title": "ਭੁਗਤਾਨ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ",
+    "to": "ਪ੍ਰਾਪਤਕਰਤਾ",
+    "amount": "ਰਾਸ਼ੀ",
+    "confirm": "ਪੁਸ਼ਟੀ ਕਰੋ",
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "sending": "ਭੇਜ ਰਹੇ ਹਾਂ...",
+    "success": "₹{{amount}} {{name}} ਨੂੰ ਭੇਜੇ!",
+    "selectRecipient": "ਪ੍ਰਾਪਤਕਰਤਾ ਚੁਣੋ",
+    "receiverPhone": "ਪ੍ਰਾਪਤਕਰਤਾ ਦਾ ਫ਼ੋਨ",
+    "amountLabel": "ਰਾਸ਼ੀ (₹)"
+  },
+  "balance": {
+    "title": "ਤੁਹਾਡਾ ਬੈਲੇਂਸ",
+    "available": "ਉਪਲਬਧ ਬੈਲੇਂਸ",
+    "addMoney": "ਪੈਸੇ ਜੋੜੋ"
+  },
+  "history": {
+    "title": "ਲੈਣਦੇਣ",
+    "empty": "ਅਜੇ ਕੋਈ ਲੈਣਦੇਣ ਨਹੀਂ",
+    "sent": "ਭੇਜੇ",
+    "received": "ਪ੍ਰਾਪਤ"
+  },
+  "profile": {
+    "title": "ਪ੍ਰੋਫਾਈਲ",
+    "language": "ਭਾਸ਼ਾ",
+    "signOut": "ਸਾਈਨ ਆਉਟ",
+    "phone": "ਫ਼ੋਨ"
+  },
+  "voice": {
+    "listening": "ਮੈਂ ਸੁਣ ਰਿਹਾ ਹਾਂ...",
+    "balance": "ਤੁਹਾਡਾ ਬੈਲੇਂਸ ₹{{amount}} ਹੈ",
+    "confirmPayment": "{{name}} ਨੂੰ ₹{{amount}} ਭੇਜ ਰਹੇ ਹਾਂ। ਪੁਸ਼ਟੀ ਕਰਨ ਲਈ Confirm ਦਬਾਓ।",
+    "contactNotFound": "{{name}} ਤੁਹਾਡੇ ਸੰਪਰਕਾਂ ਵਿੱਚ ਨਹੀਂ ਮਿਲਿਆ।",
+    "contactsPermissionDenied": "ਸੰਪਰਕਾਂ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਦਿੱਤੀ ਗਈ।",
+    "unknown": "ਮਾਫ਼ ਕਰਨਾ, ਮੈਨੂੰ ਸਮਝ ਨਹੀਂ ਆਇਆ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕਹੋ।",
+    "error": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+  },
+  "common": {
+    "back": "ਵਾਪਸ",
+    "error": "ਗਲਤੀ",
+    "ok": "ਠੀਕ ਹੈ",
+    "loading": "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ..."
+  }
+}

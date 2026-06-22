@@ -12,6 +12,7 @@ import * as Speech                   from 'expo-speech';
 
 import { api }            from '../lib/api';
 import { useStore }       from '../store/store';
+import { getTTSLocale }   from '../i18n/languages';
 import { normalizePhone } from '../utils/phone';
 import { RootStackParamList } from '../../App';
 import { C, shadow }      from '../theme';
@@ -106,7 +107,7 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
     if (isVoicePrefilled && receiverName && amount) {
       Speech.speak(
         t('voice.confirmPayment', { name: receiverName, amount }),
-        { language: language === 'hi' ? 'hi-IN' : 'en-US', rate: 0.9 }
+        { language: getTTSLocale(language), rate: 0.9 }
       );
     }
     return () => { Speech.stop(); };
@@ -125,7 +126,7 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
       setSuccess(true);
       Speech.speak(
         t('payment.success', { amount: parsed.toFixed(2), name: receiverName || phone }),
-        { language: language === 'hi' ? 'hi-IN' : 'en-US' }
+        { language: getTTSLocale(language) }
       );
       setTimeout(() => navigation.navigate('Home'), 2800);
     } catch (err: any) {

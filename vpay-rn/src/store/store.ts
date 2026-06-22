@@ -1,5 +1,6 @@
 import { create }  from 'zustand';
 import { Session } from '@supabase/supabase-js';
+import { AppLang } from '../i18n/languages';
 
 export interface Profile {
   id:                   string;
@@ -11,19 +12,19 @@ export interface Profile {
 }
 
 interface AppState {
-  session:    Session | null;
-  profile:    Profile | null;
-  language:   'en' | 'hi';
-  setSession: (s: Session | null) => void;
-  setProfile: (p: Profile | null) => void;
-  setLanguage:(l: 'en' | 'hi')    => void;
+  session:     Session | null;
+  profile:     Profile | null;
+  language:    AppLang;
+  setSession:  (s: Session | null) => void;
+  setProfile:  (p: Profile | null) => void;
+  setLanguage: (l: AppLang)        => void;
 }
 
 export const useStore = create<AppState>((set) => ({
-  session:    null,
-  profile:    null,
-  language:   'en',
-  setSession: (session)  => set({ session }),
-  setProfile: (profile)  => set({ profile }),
+  session:     null,
+  profile:     null,
+  language:    'en',
+  setSession:  (session)  => set({ session }),
+  setProfile:  (profile)  => set({ profile }),
   setLanguage: (language) => set({ language })
 }));

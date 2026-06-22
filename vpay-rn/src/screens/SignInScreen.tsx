@@ -5,10 +5,12 @@ import {
   KeyboardAvoidingView, StatusBar, Easing,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons }          from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { supabase } from '../lib/supabase';
+import { supabase }       from '../lib/supabase';
+import { useBiometric }   from '../hooks/useBiometric';
 import { RootStackParamList } from '../../App';
-import { C, shadow } from '../theme';
+import { C, shadow }      from '../theme';
 
 type Props = { navigation: NativeStackNavigationProp<RootStackParamList, 'SignIn'> };
 
@@ -18,14 +20,18 @@ const phoneToEmail = (e164: string) => `vpay_${e164.replace('+', '')}@vpay.local
 
 export default function SignInScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { isAvailable, isEnabled, authenticate, getType, storePin, getStoredPin } = useBiometric();
 
-  const [step,      setStep]      = useState<'phone' | 'pin'>('phone');
-  const [phone,     setPhone]     = useState('');
-  const [pin,       setPin]       = useState('');
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState('');
-  const [focused,   setFocused]   = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [step,           setStep]           = useState<'phone' | 'pin'>('phone');
+  const [phone,          setPhone]          = useState('');
+  const [pin,            setPin]            = useState('');
+  const [loading,        setLoading]        = useState(false);
+  const [error,          setError]          = useState('');
+  const [focused,        setFocused]        = useState(false);
+  const [isSuccess,      setIsSuccess]      = useState(false);
+  const [bioReady,       setBioReady]       = useState(false);   // biometric available + PIN stored
+  const [bioType,        setBioType]        = useState<'fingerprint' | 'faceid' | 'none'>('none');
+  const [showPinPad,     setShowPinPad]     = useState(true);
 
   const cardAnim  = useRef(new Animated.Value(0)).current;
   const fadeAnim  = useRef(new Animated.Value(1)).current;
@@ -36,6 +42,36 @@ export default function SignInScreen({ navigation }: Props) {
   useEffect(() => {
     Animated.timing(cardAnim, { toValue: 1, duration: 480, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   }, []);
+
+  // When entering PIN step, check if biometric sign-in is available for this phone
+  useEffect(() => {
+    if (step !== 'pin') return;
+    (async () => {
+      const available = await isAvailable();
+      const enabled   = await isEnabled();
+      const type      = await getType();
+      const stored    = await getStoredPin(e164);
+      setBioType(type);
+      const ready = available && enabled && !!stored;
+      setBioReady(ready);
+      if (ready) {
+        // Auto-trigger biometric prompt; PIN pad stays as fallback
+        setShowPinPad(false);
+        tryBiometric(stored!);
+      }
+    })();
+  }, [step]);
+
+  const tryBiometric = async (storedPin?: string) => {
+    const pin = storedPin ?? await getStoredPin(e164);
+    if (!pin) { setShowPinPad(true); return; }
+    const success = await authenticate('Sign in to VPay');
+    if (success) {
+      submitPin(pin);
+    } else {
+      setShowPinPad(true);
+    }
+  };
 
   const crossFade = (cb: () => void) => {
     Animated.timing(fadeAnim, { toValue: 0, duration: 130, useNativeDriver: true }).start(() => {
@@ -80,14 +116,20 @@ export default function SignInScreen({ navigation }: Props) {
 
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: currentPin });
     if (!signInErr) {
+      // Store PIN for future biometric sign-in if biometric is enabled
+      const available = await isAvailable();
+      const enabled   = await isEnabled();
+      if (available && enabled) {
+        await storePin(e164, currentPin);
+      }
       setLoading(false);
       setIsSuccess(true);
-      // navigation happens automatically via App.tsx session listener after a brief moment
       return;
     }
 
     setLoading(false);
     setPin('');
+    setShowPinPad(true);
     setError('Incorrect PIN or account not found');
     shake();
   };
@@ -156,7 +198,7 @@ export default function SignInScreen({ navigation }: Props) {
             ) : (
               <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
                 <TouchableOpacity
-                  onPress={() => crossFade(() => { setStep('phone'); setPin(''); setError(''); })}
+                  onPress={() => crossFade(() => { setStep('phone'); setPin(''); setError(''); setBioReady(false); setShowPinPad(true); })}
                   style={s.backChip}
                   activeOpacity={0.7}
                 >
@@ -164,14 +206,12 @@ export default function SignInScreen({ navigation }: Props) {
                 </TouchableOpacity>
 
                 <Text style={s.stepLabel}>Step 2 of 2 — Secure code</Text>
-                <Text style={s.cardTitle}>Enter your PIN</Text>
-                <Text style={s.cardSub}>Your 6-digit security PIN</Text>
-
-                <View style={s.dots}>
-                  {Array.from({ length: PIN_LENGTH }).map((_, i) => (
-                    <View key={i} style={[s.dot, i < pin.length && s.dotFilled]} />
-                  ))}
-                </View>
+                <Text style={s.cardTitle}>
+                  {showPinPad ? 'Enter your PIN' : 'Biometric sign-in'}
+                </Text>
+                <Text style={s.cardSub}>
+                  {showPinPad ? 'Your 6-digit security PIN' : 'Use your fingerprint or face to sign in'}
+                </Text>
 
                 {!!error && <Text style={[s.errorText, s.errorCenter]}>{error}</Text>}
 
@@ -187,21 +227,69 @@ export default function SignInScreen({ navigation }: Props) {
                     <ActivityIndicator size="large" color={C.primary} />
                     <Text style={s.loadingText}>Signing you in…</Text>
                   </View>
-                ) : (
-                  <View style={s.pad}>
-                    {KEYS.map((k, i) => (
+                ) : showPinPad ? (
+                  <>
+                    <View style={s.dots}>
+                      {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+                        <View key={i} style={[s.dot, i < pin.length && s.dotFilled]} />
+                      ))}
+                    </View>
+                    <View style={s.pad}>
+                      {KEYS.map((k, i) => (
+                        <TouchableOpacity
+                          key={i}
+                          style={[s.key, k === '' && s.keyGhost]}
+                          onPress={() => k && handleKey(k)}
+                          disabled={!k}
+                          activeOpacity={0.6}
+                        >
+                          <Text style={[s.keyText, k === 'del' && s.keyDel]}>
+                            {k === 'del' ? '⌫' : k}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    {bioReady && (
                       <TouchableOpacity
-                        key={i}
-                        style={[s.key, k === '' && s.keyGhost]}
-                        onPress={() => k && handleKey(k)}
-                        disabled={!k}
-                        activeOpacity={0.6}
+                        style={s.switchAuthBtn}
+                        onPress={() => { setShowPinPad(false); tryBiometric(); }}
+                        activeOpacity={0.7}
                       >
-                        <Text style={[s.keyText, k === 'del' && s.keyDel]}>
-                          {k === 'del' ? '⌫' : k}
+                        <Ionicons
+                          name={bioType === 'faceid' ? 'scan-outline' : 'finger-print-outline'}
+                          size={18}
+                          color={C.primary}
+                        />
+                        <Text style={s.switchAuthText}>
+                          Use {bioType === 'faceid' ? 'Face ID' : 'Biometrics'} instead
                         </Text>
                       </TouchableOpacity>
-                    ))}
+                    )}
+                  </>
+                ) : (
+                  // Biometric screen
+                  <View style={s.bioSection}>
+                    <TouchableOpacity
+                      style={s.bioCircle}
+                      onPress={() => tryBiometric()}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons
+                        name={bioType === 'faceid' ? 'scan-outline' : 'finger-print-outline'}
+                        size={52}
+                        color={C.primary}
+                      />
+                    </TouchableOpacity>
+                    <Text style={s.bioLabel}>
+                      Tap to use {bioType === 'faceid' ? 'Face ID' : 'Biometrics'}
+                    </Text>
+                    <TouchableOpacity
+                      style={s.switchAuthBtn}
+                      onPress={() => setShowPinPad(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={s.switchAuthText}>Use PIN instead</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </Animated.View>
@@ -265,4 +353,11 @@ const s = StyleSheet.create({
   successCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: C.success, justifyContent: 'center', alignItems: 'center', ...shadow.success },
   successCheck:  { fontSize: 28, color: '#fff', fontWeight: '800' },
   successText:   { fontSize: 15, color: C.success, fontWeight: '700' },
+
+  bioSection:    { alignItems: 'center', paddingVertical: 32, gap: 16 },
+  bioCircle:     { width: 100, height: 100, borderRadius: 50, backgroundColor: C.primaryBg, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: C.primaryLight, ...shadow.md },
+  bioLabel:      { fontSize: 15, color: C.textSub, fontWeight: '600' },
+
+  switchAuthBtn:  { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 12, paddingHorizontal: 16 },
+  switchAuthText: { fontSize: 14, color: C.primary, fontWeight: '600' },
 });

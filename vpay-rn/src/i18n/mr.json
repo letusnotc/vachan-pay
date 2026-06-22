@@ -1,0 +1,87 @@
+{
+  "login": {
+    "title": "VPay मध्ये आपले स्वागत आहे",
+    "subtitle": "आवाजाने पैसे पाठवा",
+    "phonePlaceholder": "फोन नंबर (10 अंक)",
+    "sendOtp": "OTP पाठवा",
+    "sending": "पाठवत आहे...",
+    "errorEmpty": "कृपया फोन नंबर टाका",
+    "errorInvalid": "वैध 10-अंकी नंबर टाका"
+  },
+  "otp": {
+    "title": "OTP टाका",
+    "subtitle": "{{phone}} वर पाठवला",
+    "placeholder": "6-अंकी OTP",
+    "verify": "सत्यापित करा",
+    "verifying": "सत्यापित करत आहे...",
+    "resend": "OTP पुन्हा पाठवा",
+    "resendIn": "{{sec}} सेकंदात पुन्हा पाठवा"
+  },
+  "profileSetup": {
+    "title": "प्रोफाइल सेट करा",
+    "namePlaceholder": "पूर्ण नाव",
+    "emailPlaceholder": "ईमेल (पर्यायी)",
+    "save": "पुढे चला",
+    "saving": "जतन करत आहे..."
+  },
+  "home": {
+    "greeting": "नमस्कार, {{name}}",
+    "goodMorning": "शुभ प्रभात",
+    "goodAfternoon": "नमस्कार",
+    "goodEvening": "शुभ संध्याकाळ",
+    "subtitle": "तुमचे पेमेंट सोपे आणि सुरक्षित करण्यासाठी मी येथे आहे.",
+    "balance": "वॉलेट शिल्लक",
+    "tapToSpeak": "बोलण्यासाठी मायक्रोफोन दाबा",
+    "listening": "ऐकत आहे...",
+    "processing": "प्रक्रिया होत आहे...",
+    "statusIdle": "आज मी तुमची कशी मदद करू?",
+    "transcriptDetected": "ट्रान्सक्रिप्ट मिळाले",
+    "pay": "पैसे पाठवा",
+    "history": "इतिहास",
+    "profile": "प्रोफाइल"
+  },
+  "payment": {
+    "title": "पेमेंट निश्चित करा",
+    "to": "प्राप्तकर्ता",
+    "amount": "रक्कम",
+    "confirm": "निश्चित करा",
+    "cancel": "रद्द करा",
+    "sending": "पाठवत आहे...",
+    "success": "₹{{amount}} {{name}} ला पाठवले!",
+    "selectRecipient": "प्राप्तकर्ता निवडा",
+    "receiverPhone": "प्राप्तकर्त्याचा फोन",
+    "amountLabel": "रक्कम (₹)"
+  },
+  "balance": {
+    "title": "तुमची शिल्लक",
+    "available": "उपलब्ध शिल्लक",
+    "addMoney": "पैसे जोडा"
+  },
+  "history": {
+    "title": "व्यवहार",
+    "empty": "अद्याप कोणतेही व्यवहार नाहीत",
+    "sent": "पाठवले",
+    "received": "मिळाले"
+  },
+  "profile": {
+    "title": "प्रोफाइल",
+    "language": "भाषा",
+    "signOut": "साइन आउट",
+    "phone": "फोन"
+  },
+  "voice": {
+    "listening": "मी ऐकत आहे...",
+    "balance": "तुमची शिल्लक ₹{{amount}} आहे",
+    "confirmPayment": "{{name}} ला ₹{{amount}} पाठवत आहे. निश्चित करण्यासाठी Confirm दाबा.",
+    "contactNotFound": "{{name}} तुमच्या संपर्कांमध्ये सापडला नाही.",
+    "contactsPermissionDenied": "संपर्कांची परवानगी नाकारली गेली.",
+    "unknown": "माफ करा, मला समजले नाही. कृपया पुन्हा सांगा.",
+    "error": "काहीतरी चुकीचे झाले. कृपया पुन्हा प्रयत्न करा."
+  },
+  "common": {
+    "back": "मागे",
+    "error": "त्रुटी",
+    "ok": "ठीक आहे",
+    "loading": "लोड होत आहे..."
+  }
+}

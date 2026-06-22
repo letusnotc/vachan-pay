@@ -32,17 +32,25 @@ const FALLBACK = {
   clarification_message: "Sorry, I couldn't understand that. Please try again."
 };
 
+// Human-readable language names for the Gemma prompt
+const LANG_NAMES = {
+  en: 'English', hi: 'Hindi', bn: 'Bengali', te: 'Telugu',
+  mr: 'Marathi', ta: 'Tamil', gu: 'Gujarati', kn: 'Kannada',
+  ml: 'Malayalam', pa: 'Punjabi',
+};
+
 exports.analyzeTranscript = async (req, res, next) => {
   try {
-    const { transcript, context } = req.body;
+    const { transcript, context, language = 'en' } = req.body;
     if (!transcript) return res.status(400).json({ error: 'transcript is required' });
 
+    const langName   = LANG_NAMES[language] ?? 'English';
     const hasContext = context && (context.name || context.amount);
     const contextLine = hasContext
       ? `\nPreviously understood from this conversation: name="${context.name ?? 'unknown'}", amount=${context.amount ?? 'unknown'}. Merge with the new input — do NOT discard prior values unless the user explicitly changes them.`
       : '';
 
-    const prompt = `You are a payment assistant for an Indian UPI app. The user speaks Hindi, English, or a mix of both.
+    const prompt = `You are a payment assistant for an Indian UPI app. The user is speaking in ${langName} (or a mix with English).
 Parse the voice command and respond ONLY with valid JSON (no markdown, no explanation):
 
 {
@@ -53,9 +61,9 @@ Parse the voice command and respond ONLY with valid JSON (no markdown, no explan
 
 Rules:
 - For make_payment extract recipient name and rupee amount if present
-- clarification_message must be a natural sentence asking for what is missing, or "" if all info is present
-- Amounts may be spoken as "pachaas", "five hundred", "500 rupees", "₹500" — normalise to a number
-- Hindi examples: "Rahul ko pachaas rupaye bhejo" → make_payment, name: Rahul, amount: 50
+- clarification_message must be in ${langName} — a natural sentence asking for what is missing, or "" if all info is present
+- Amounts may appear as number words or digits — normalise to a number
+- Hindi example: "Rahul ko pachaas rupaye bhejo" → make_payment, name: Rahul, amount: 50
 - "mera balance check karo" → check_balance
 - If context is provided, treat this as a follow-up answer and merge it with prior values${contextLine}
 

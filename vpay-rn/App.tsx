@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 import './src/i18n';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, AppState } from 'react-native';
 import { NavigationContainer }        from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider }           from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import { api }        from './src/lib/api';
 import { useStore }   from './src/store/store';
 import { C }          from './src/theme';
 
+import LockScreen           from './src/components/LockScreen';
 import LandingScreen        from './src/screens/LandingScreen';
 import SignInScreen         from './src/screens/SignInScreen';
 import SignUpScreen         from './src/screens/SignUpScreen';
@@ -90,6 +91,25 @@ export default function App() {
   const [hydrated,       setHydrated]       = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [backendDown,    setBackendDown]    = useState(false);
+  const [locked,         setLocked]         = useState(false);
+
+  const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+  const lastActiveRef = useRef<number>(Date.now());
+
+  // Lock on background → foreground if idle > 5 min
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        const isLoggedIn = !!session && !!profile?.onboarding_completed;
+        if (isLoggedIn && Date.now() - lastActiveRef.current > IDLE_TIMEOUT) {
+          setLocked(true);
+        }
+      } else {
+        lastActiveRef.current = Date.now();
+      }
+    });
+    return () => sub.remove();
+  }, [session, profile]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -138,6 +158,17 @@ export default function App() {
           <Text style={bd.signOut}>Sign out</Text>
         </TouchableOpacity>
       </View>
+    );
+  }
+
+  if (locked) {
+    return (
+      <SafeAreaProvider>
+        <LockScreen onUnlock={() => {
+          setLocked(false);
+          lastActiveRef.current = Date.now();
+        }} />
+      </SafeAreaProvider>
     );
   }
 

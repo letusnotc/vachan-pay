@@ -1,0 +1,87 @@
+{
+  "login": {
+    "title": "VPay માં આپનું સ્વાગત છે",
+    "subtitle": "અવાજ દ્વારા ચૂકવણી કરો",
+    "phonePlaceholder": "ફોન નંબર (10 આંકડા)",
+    "sendOtp": "OTP મોકલો",
+    "sending": "મોકલી રહ્યા છીએ...",
+    "errorEmpty": "ફોન નંબર દાખલ કરો",
+    "errorInvalid": "માન્ય 10-આંકડાનો નંબર દાખલ કરો"
+  },
+  "otp": {
+    "title": "OTP દાખલ કરો",
+    "subtitle": "{{phone}} પર મોકલ્યો",
+    "placeholder": "6-આંકડાનો OTP",
+    "verify": "ચકાસો",
+    "verifying": "ચકાસી રહ્યા છીએ...",
+    "resend": "OTP ફરી મોકલો",
+    "resendIn": "{{sec}} સેકન્ડમાં ફરી મોકલો"
+  },
+  "profileSetup": {
+    "title": "પ્રોફાઇલ સેટ કરો",
+    "namePlaceholder": "પૂરું નામ",
+    "emailPlaceholder": "ઈમેઈલ (વૈકલ્પિક)",
+    "save": "આગળ વધો",
+    "saving": "સાચવી રહ્યા છીએ..."
+  },
+  "home": {
+    "greeting": "નમસ્તે, {{name}}",
+    "goodMorning": "સુપ્રભાત",
+    "goodAfternoon": "નમસ્કાર",
+    "goodEvening": "શુભ સાંજ",
+    "subtitle": "તમારી ચૂકવણી સરળ અને સુરક્ષિત બનાવવા હું અહીં છું.",
+    "balance": "વૉલેટ બૅલેન્સ",
+    "tapToSpeak": "બોલવા માટે માઇક દબાવો",
+    "listening": "સાંભળી રહ્યો છું...",
+    "processing": "પ્રોસેસ થઈ રહ્યું છે...",
+    "statusIdle": "આજે હું તમારી કેવી રીતે મદદ કરી શકું?",
+    "transcriptDetected": "ટ્રાન્સ્ક્રિપ્ટ મળ્યું",
+    "pay": "ચૂકવણી",
+    "history": "ઇતિહાસ",
+    "profile": "પ્રોફાઇલ"
+  },
+  "payment": {
+    "title": "ચૂકવણી પુષ્ટ કરો",
+    "to": "પ્રાપ્તકર્તા",
+    "amount": "રકમ",
+    "confirm": "પુષ્ટ કરો",
+    "cancel": "રદ કરો",
+    "sending": "મોકલી રહ્યા છીએ...",
+    "success": "₹{{amount}} {{name}} ને મોકલ્યા!",
+    "selectRecipient": "પ્રાપ્તકર્તા પસંદ કરો",
+    "receiverPhone": "પ્રાપ્તકર્તાનો ફોન",
+    "amountLabel": "રકમ (₹)"
+  },
+  "balance": {
+    "title": "તમારું બૅલેન્સ",
+    "available": "ઉપલબ્ધ બૅલેન્સ",
+    "addMoney": "પૈસા ઉમેરો"
+  },
+  "history": {
+    "title": "વ્યવહારો",
+    "empty": "હજુ કોઈ વ્યવહાર નથી",
+    "sent": "મોકલ્યા",
+    "received": "મળ્યા"
+  },
+  "profile": {
+    "title": "પ્રોફાઇલ",
+    "language": "ભાષા",
+    "signOut": "સાઇન આઉટ",
+    "phone": "ફોન"
+  },
+  "voice": {
+    "listening": "હું સાંભળી રહ્યો છું...",
+    "balance": "તમારું બૅલેન્સ ₹{{amount}} છે",
+    "confirmPayment": "{{name}} ને ₹{{amount}} મોકલી રહ્યા છીએ. પુષ્ટ કરવા Confirm દબાવો.",
+    "contactNotFound": "{{name}} તમારા સંપર્કોમાં મળ્યા નહીં.",
+    "contactsPermissionDenied": "સંપર્કોની પરવાનગી નકારી.",
+    "unknown": "માફ કરો, હું સમજ્યો નહીં. ફરી કહો.",
+    "error": "કંઈક ભૂલ થઈ. ફરી પ્રયત્ન કરો."
+  },
+  "common": {
+    "back": "પાછળ",
+    "error": "ભૂલ",
+    "ok": "ઠીક છે",
+    "loading": "લોડ થઈ રહ્યું છે..."
+  }
+}

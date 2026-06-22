@@ -1,13 +1,14 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  Alert, Animated, Easing,
+  Alert, Animated, Easing, Switch,
 } from 'react-native';
 import { SafeAreaView }              from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation }            from 'react-i18next';
 import { supabase }                  from '../lib/supabase';
 import { useStore }                  from '../store/store';
+import { useBiometric }              from '../hooks/useBiometric';
 import LanguageSwitcher              from '../components/LanguageSwitcher';
 import { RootStackParamList }        from '../../App';
 import { C, shadow }                 from '../theme';
@@ -43,6 +44,22 @@ const row = StyleSheet.create({
 export default function ProfileScreen({ navigation }: Props) {
   const { t }                  = useTranslation();
   const { profile, setSession } = useStore();
+  const { isAvailable, isEnabled, setEnabled, authenticate, getType } = useBiometric();
+
+  const [biometricOn,        setBiometricOn]        = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType,      setBiometricType]      = useState<'fingerprint' | 'faceid' | 'none'>('none');
+
+  useEffect(() => {
+    (async () => {
+      const available = await isAvailable();
+      const enabled   = await isEnabled();
+      const type      = await getType();
+      setBiometricAvailable(available);
+      setBiometricOn(enabled);
+      setBiometricType(type);
+    })();
+  }, []);
 
   const mountAnim  = useRef(new Animated.Value(0)).current;
   const avatarAnim = useRef(new Animated.Value(0)).current;
@@ -58,6 +75,15 @@ export default function ProfileScreen({ navigation }: Props) {
     ?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '?';
 
   const avatarScale = avatarAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
+
+  const handleBiometricToggle = async (value: boolean) => {
+    if (value) {
+      const success = await authenticate('Confirm to enable biometric login');
+      if (!success) return;
+    }
+    await setEnabled(value);
+    setBiometricOn(value);
+  };
 
   const handleSignOut = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
@@ -107,6 +133,19 @@ export default function ProfileScreen({ navigation }: Props) {
           <InfoRow label={t('profile.language')}>
             <LanguageSwitcher />
           </InfoRow>
+          {biometricAvailable && (
+            <>
+              <View style={s.divider} />
+              <InfoRow label="Biometrics">
+                <Switch
+                  value={biometricOn}
+                  onValueChange={handleBiometricToggle}
+                  trackColor={{ false: C.border, true: C.primaryLight }}
+                  thumbColor={biometricOn ? C.primary : '#fff'}
+                />
+              </InfoRow>
+            </>
+          )}
         </Animated.View>
 
         {/* Sign out */}

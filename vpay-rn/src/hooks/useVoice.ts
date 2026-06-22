@@ -3,6 +3,7 @@ import { Audio }            from 'expo-av';
 import * as Speech          from 'expo-speech';
 import { api }              from '../lib/api';
 import { useStore }         from '../store/store';
+import { getTTSLocale }     from '../i18n/languages';
 
 export interface VoiceResult {
   intent:                'make_payment' | 'check_balance' | 'check_history' | 'unknown';
@@ -25,7 +26,7 @@ export const useVoice = () => {
 
   const speak = (text: string) => {
     Speech.stop();
-    Speech.speak(text, { language: language === 'hi' ? 'hi-IN' : 'en-US', rate: 0.9 });
+    Speech.speak(text, { language: getTTSLocale(language), rate: 0.9 });
   };
 
   const stopSpeaking = () => Speech.stop();
@@ -82,7 +83,7 @@ export const useVoice = () => {
 
       const form = new FormData();
       form.append('audio', { uri, type: 'audio/m4a', name: 'recording.m4a' } as any);
-      form.append('language', language === 'hi' ? 'hi' : 'en');
+      form.append('language', language);
 
       const whisperRes = await api.post('/whisper/transcribe', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -109,6 +110,7 @@ export const useVoice = () => {
       const aiRes = await api.post('/ai/analyze-transcript', {
         transcript: text,
         context:    context ?? null,
+        language,
       });
       return aiRes.data as VoiceResult;
     } catch (err: any) {
