@@ -32,6 +32,7 @@
     "subtitle": "I'm here to make payments simple and secure for you.",
     "balance": "Wallet Balance",
     "tapToSpeak": "Tap mic to speak",
+    "holdToSpeak": "Hold the mic button to speak",
     "listening": "Listening...",
     "processing": "Processing your request...",
     "statusIdle": "How can I help you today?",

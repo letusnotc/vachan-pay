@@ -294,6 +294,9 @@ export default function HomeScreen({ navigation }: Props) {
               onPressIn={handleMicPressIn}
               onPressOut={handleMicPressOut}
             />
+            {!isRecording && !isProcessing && (
+              <Text style={s.holdHint}>{t('home.holdToSpeak')}</Text>
+            )}
           </Animated.View>
 
           {/* Status text with dash decorators */}
@@ -358,7 +361,8 @@ const s = StyleSheet.create({
   subtitle:      { fontSize: 16, color: C.textSub, textAlign: 'center', lineHeight: 23, marginTop: 4 },
   subtitleLine:  { width: 40, height: 2.5, borderRadius: 2, backgroundColor: C.primary, marginTop: 12 },
 
-  micWrap: { alignItems: 'center' },
+  micWrap:   { alignItems: 'center', gap: 12 },
+  holdHint:  { fontSize: 12, color: C.textMuted, fontWeight: '500', letterSpacing: 0.2 },
 
   statusBlock: { alignItems: 'center' },
   statusRow:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
