@@ -46,17 +46,37 @@
     "to": "ਪ੍ਰਾਪਤਕਰਤਾ",
     "amount": "ਰਾਸ਼ੀ",
     "confirm": "ਪੁਸ਼ਟੀ ਕਰੋ",
+    "payNow": "ਹੁਣੇ ਭੁਗਤਾਨ ਕਰੋ →",
     "cancel": "ਰੱਦ ਕਰੋ",
     "sending": "ਭੇਜ ਰਹੇ ਹਾਂ...",
     "success": "₹{{amount}} {{name}} ਨੂੰ ਭੇਜੇ!",
     "selectRecipient": "ਪ੍ਰਾਪਤਕਰਤਾ ਚੁਣੋ",
     "receiverPhone": "ਪ੍ਰਾਪਤਕਰਤਾ ਦਾ ਫ਼ੋਨ",
-    "amountLabel": "ਰਾਸ਼ੀ (₹)"
+    "amountLabel": "ਰਾਸ਼ੀ (₹)",
+    "securedByStripe": "ਭੁਗਤਾਨ Stripe ਦੁਆਰਾ ਸੁਰੱਖਿਅਤ"
   },
   "balance": {
     "title": "ਤੁਹਾਡਾ ਬੈਲੇਂਸ",
     "available": "ਉਪਲਬਧ ਬੈਲੇਂਸ",
     "addMoney": "ਪੈਸੇ ਜੋੜੋ"
+  },
+  "addMoney": {
+    "title": "ਪੈਸੇ ਜੋੜੋ",
+    "currentBalance": "ਮੌਜੂਦਾ ਬੈਲੇਂਸ",
+    "enterAmount": "ਰਾਸ਼ੀ ਦਰਜ ਕਰੋ (₹)",
+    "limitNote": "ਘੱਟੋ-ਘੱਟ ₹50 · ਵੱਧ ਤੋਂ ਵੱਧ ₹1,00,000 ਪ੍ਰਤੀ ਲੈਣ-ਦੇਣ",
+    "quickAmounts": "ਤੇਜ਼ ਰਾਸ਼ੀਆਂ",
+    "invalidTitle": "ਅਵੈਧ ਰਾਸ਼ੀ",
+    "invalidBody": "₹50 ਤੋਂ ₹1,00,000 ਵਿਚਕਾਰ ਰਾਸ਼ੀ ਦਰਜ ਕਰੋ",
+    "securedByStripe": "🔒  Stripe ਦੁਆਰਾ ਸੁਰੱਖਿਅਤ  ·  256-ਬਿੱਟ SSL",
+    "addButton": "ਪੈਸੇ ਜੋੜੋ",
+    "addButtonAmount": "₹{{amount}} ਜੋੜੋ →",
+    "tryAgain": "ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+    "disclaimer": "ਤੁਹਾਡੇ VPay ਵਾਲਿਟ ਵਿੱਚ ਜੋੜੇ ਗਏ ਪੈਸੇ ਸਿਰਫ਼ VPay ਨੈੱਟਵਰਕ ਦੇ ਅੰਦਰ ਭੁਗਤਾਨਾਂ ਲਈ ਵਰਤੇ ਜਾ ਸਕਦੇ ਹਨ। ਤੁਹਾਡੇ ਕਾਰਡ ਦੇ ਵੇਰਵੇ ਕਦੇ ਵੀ VPay ਸਰਵਰਾਂ 'ਤੇ ਸਟੋਰ ਨਹੀਂ ਕੀਤੇ ਜਾਂਦੇ।",
+    "successTitle": "ਪੈਸੇ ਜੋੜੇ ਗਏ!",
+    "newBalance": "ਨਵਾਂ ਬੈਲੇਂਸ: ₹{{amount}}",
+    "returningHint": "ਵਾਲਿਟ 'ਤੇ ਵਾਪਸ ਜਾ ਰਹੇ ਹਾਂ…",
+    "genericError": "ਭੁਗਤਾਨ ਅਸਫਲ ਰਿਹਾ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
   },
   "history": {
     "title": "ਲੈਣਦੇਣ",

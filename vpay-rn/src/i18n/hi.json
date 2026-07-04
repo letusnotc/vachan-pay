@@ -46,17 +46,37 @@
     "to": "प्राप्तकर्ता",
     "amount": "राशि",
     "confirm": "पुष्टि करें",
+    "payNow": "अभी भुगतान करें →",
     "cancel": "रद्द करें",
     "sending": "भेज रहे हैं...",
     "success": "₹{{amount}} {{name}} को भेजा गया!",
     "selectRecipient": "प्राप्तकर्ता चुनें",
     "receiverPhone": "प्राप्तकर्ता का फ़ोन",
-    "amountLabel": "राशि (₹)"
+    "amountLabel": "राशि (₹)",
+    "securedByStripe": "भुगतान Stripe द्वारा सुरक्षित"
   },
   "balance": {
     "title": "आपका बैलेंस",
     "available": "उपलब्ध बैलेंस",
     "addMoney": "पैसे जोड़ें"
+  },
+  "addMoney": {
+    "title": "पैसे जोड़ें",
+    "currentBalance": "वर्तमान बैलेंस",
+    "enterAmount": "राशि दर्ज करें (₹)",
+    "limitNote": "न्यूनतम ₹50 · अधिकतम ₹1,00,000 प्रति लेनदेन",
+    "quickAmounts": "त्वरित राशि",
+    "invalidTitle": "अमान्य राशि",
+    "invalidBody": "₹50 से ₹1,00,000 के बीच राशि दर्ज करें",
+    "securedByStripe": "🔒  Stripe द्वारा सुरक्षित  ·  256-बिट SSL",
+    "addButton": "पैसे जोड़ें",
+    "addButtonAmount": "₹{{amount}} जोड़ें →",
+    "tryAgain": "फिर कोशिश करें",
+    "disclaimer": "आपके VPay वॉलेट में जोड़े गए पैसे केवल VPay नेटवर्क के भीतर भुगतान के लिए उपयोग किए जा सकते हैं। आपके कार्ड विवरण कभी भी VPay सर्वर पर संग्रहीत नहीं होते।",
+    "successTitle": "पैसे जोड़े गए!",
+    "newBalance": "नया बैलेंस: ₹{{amount}}",
+    "returningHint": "वॉलेट पर वापस जा रहे हैं…",
+    "genericError": "भुगतान विफल हुआ। कृपया दोबारा प्रयास करें।"
   },
   "history": {
     "title": "लेनदेन",

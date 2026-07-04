@@ -80,14 +80,38 @@ export default function LockScreen({ onUnlock }: Props) {
     if (!profile?.phone_number) return;
     setLoading(true);
     setError('');
+
+    // C-3: check account lockout before attempting re-auth
+    const { data: lockout } = await supabase.rpc('check_pin_lockout', { p_phone: profile.phone_number });
+    if (lockout?.locked) {
+      setLoading(false);
+      setPin('');
+      const mins = Math.ceil((lockout.retry_after_seconds ?? 0) / 60);
+      setError(`Too many failed attempts. Try again in ${mins} minute${mins === 1 ? '' : 's'}.`);
+      shake();
+      return;
+    }
+
     const email = `vpay_${profile.phone_number.replace('+', '')}@vpay.local`;
     const { error: err } = await supabase.auth.signInWithPassword({ email, password: currentPin });
     setLoading(false);
     if (!err) {
+      await supabase.rpc('clear_pin_failures', { p_phone: profile.phone_number });
+      // L-2: revoke every OTHER session now that re-auth succeeded, so a
+      // stale/leaked token from before the lock can't still be used.
+      // Uses scope 'others' (not a full signOut) so the just-established
+      // session that unlocks the app right now is left intact.
+      supabase.auth.signOut({ scope: 'others' }).catch(() => {});
       onUnlock();
     } else {
+      const { data: failure } = await supabase.rpc('record_pin_failure', { p_phone: profile.phone_number });
       setPin('');
-      setError('Incorrect PIN. Try again.');
+      if (failure?.locked) {
+        setError('Too many failed attempts. Account locked for 15 minutes.');
+      } else {
+        const remaining = failure?.attempts_remaining;
+        setError(remaining != null ? `Incorrect PIN. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.` : 'Incorrect PIN. Try again.');
+      }
       shake();
     }
   };

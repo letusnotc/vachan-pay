@@ -1,7 +1,19 @@
 import axios from 'axios';
+import { HmacSHA256 } from 'crypto-js';
 import { supabase } from './supabase';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const BASE_URL      = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const SIGNING_SECRET = process.env.EXPO_PUBLIC_APP_SIGNING_SECRET;
+
+// Network Security Layer 4 — only money-moving routes are signed. Matches
+// the backend's requestSigning middleware, which is only mounted on these.
+const SIGNED_PATHS = [
+  '/payment/transfer',
+  '/stripe/create-payment-intent',
+  '/stripe/confirm-topup',
+  '/stripe/create-transfer-intent',
+  '/stripe/confirm-transfer',
+];
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -15,6 +27,19 @@ api.interceptors.request.use(async (config) => {
   if (session?.access_token) {
     config.headers.Authorization = `Bearer ${session.access_token}`;
   }
+
+  // HMAC-sign money-moving requests so a captured/replayed request can't be
+  // resubmitted, and binds the request body to this specific attempt.
+  const path = (config.url ?? '').split('?')[0];
+  if (SIGNING_SECRET && SIGNED_PATHS.some((p) => path.endsWith(p))) {
+    const timestamp = Date.now().toString();
+    const body      = JSON.stringify(config.data ?? '');
+    const signature = HmacSHA256(`${timestamp}.${body}`, SIGNING_SECRET).toString();
+
+    config.headers['X-Timestamp'] = timestamp;
+    config.headers['X-Signature'] = signature;
+  }
+
   return config;
 });
 

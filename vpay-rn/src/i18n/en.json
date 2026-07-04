@@ -46,17 +46,37 @@
     "to": "To",
     "amount": "Amount",
     "confirm": "Confirm",
+    "payNow": "Pay now →",
     "cancel": "Cancel",
     "sending": "Sending...",
     "success": "Payment of ₹{{amount}} sent to {{name}}!",
     "selectRecipient": "Choose recipient",
     "receiverPhone": "Recipient phone (E.164)",
-    "amountLabel": "Amount (₹)"
+    "amountLabel": "Amount (₹)",
+    "securedByStripe": "Payment secured by Stripe"
   },
   "balance": {
     "title": "Your Balance",
     "available": "Available Balance",
     "addMoney": "Add Money"
+  },
+  "addMoney": {
+    "title": "Add Money",
+    "currentBalance": "CURRENT BALANCE",
+    "enterAmount": "ENTER AMOUNT (₹)",
+    "limitNote": "Min ₹50 · Max ₹1,00,000 per transaction",
+    "quickAmounts": "Quick amounts",
+    "invalidTitle": "Invalid Amount",
+    "invalidBody": "Enter an amount between ₹50 and ₹1,00,000",
+    "securedByStripe": "🔒  Secured by Stripe  ·  256-bit SSL",
+    "addButton": "Add Money",
+    "addButtonAmount": "Add ₹{{amount}} →",
+    "tryAgain": "Try again",
+    "disclaimer": "Money added to your VPay wallet can only be used for payments within the VPay network. Your card details are never stored on VPay servers.",
+    "successTitle": "Money Added!",
+    "newBalance": "New balance: ₹{{amount}}",
+    "returningHint": "Returning to wallet…",
+    "genericError": "Payment failed. Please try again."
   },
   "history": {
     "title": "Transactions",

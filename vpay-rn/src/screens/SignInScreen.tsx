@@ -20,7 +20,7 @@ const phoneToEmail = (e164: string) => `vpay_${e164.replace('+', '')}@vpay.local
 
 export default function SignInScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { isAvailable, isEnabled, authenticate, getType, storePin, getStoredPin } = useBiometric();
+  const { isAvailable, isEnabled, getType, storePin, hasStoredPin, getStoredPin } = useBiometric();
 
   const [step,           setStep]           = useState<'phone' | 'pin'>('phone');
   const [phone,          setPhone]          = useState('');
@@ -43,34 +43,34 @@ export default function SignInScreen({ navigation }: Props) {
     Animated.timing(cardAnim, { toValue: 1, duration: 480, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   }, []);
 
-  // When entering PIN step, check if biometric sign-in is available for this phone
+  // When entering PIN step, check if biometric sign-in is available for this
+  // phone. hasStoredPin is a cheap, unauthenticated existence check — it
+  // does NOT prompt the OS authenticator, unlike getStoredPin.
   useEffect(() => {
     if (step !== 'pin') return;
     (async () => {
       const available = await isAvailable();
       const enabled   = await isEnabled();
       const type      = await getType();
-      const stored    = await getStoredPin(e164);
+      const stored    = await hasStoredPin(e164);
       setBioType(type);
-      const ready = available && enabled && !!stored;
+      const ready = available && enabled && stored;
       setBioReady(ready);
       if (ready) {
         // Auto-trigger biometric prompt; PIN pad stays as fallback
         setShowPinPad(false);
-        tryBiometric(stored!);
+        tryBiometric();
       }
     })();
   }, [step]);
 
-  const tryBiometric = async (storedPin?: string) => {
-    const pin = storedPin ?? await getStoredPin(e164);
+  // getStoredPin itself triggers the OS biometric/passcode prompt (the PIN
+  // is stored with requireAuthentication) — no separate authenticate() call
+  // needed here, that would show a second prompt back to back.
+  const tryBiometric = async () => {
+    const pin = await getStoredPin(e164);
     if (!pin) { setShowPinPad(true); return; }
-    const success = await authenticate('Sign in to VPay');
-    if (success) {
-      submitPin(pin);
-    } else {
-      setShowPinPad(true);
-    }
+    submitPin(pin);
   };
 
   const crossFade = (cb: () => void) => {
@@ -112,10 +112,23 @@ export default function SignInScreen({ navigation }: Props) {
   const submitPin = async (currentPin: string) => {
     setLoading(true);
     setError('');
-    const email = phoneToEmail(e164);
 
+    // C-3: check account lockout before attempting sign-in
+    const { data: lockout } = await supabase.rpc('check_pin_lockout', { p_phone: e164 });
+    if (lockout?.locked) {
+      setLoading(false);
+      setPin('');
+      setShowPinPad(true);
+      const mins = Math.ceil((lockout.retry_after_seconds ?? 0) / 60);
+      setError(`Too many failed attempts. Try again in ${mins} minute${mins === 1 ? '' : 's'}.`);
+      shake();
+      return;
+    }
+
+    const email = phoneToEmail(e164);
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: currentPin });
     if (!signInErr) {
+      await supabase.rpc('clear_pin_failures', { p_phone: e164 });
       // Store PIN for future biometric sign-in if biometric is enabled
       const available = await isAvailable();
       const enabled   = await isEnabled();
@@ -127,10 +140,20 @@ export default function SignInScreen({ navigation }: Props) {
       return;
     }
 
+    const { data: failure } = await supabase.rpc('record_pin_failure', { p_phone: e164 });
     setLoading(false);
     setPin('');
     setShowPinPad(true);
-    setError('Incorrect PIN or account not found');
+    if (failure?.locked) {
+      setError('Too many failed attempts. Account locked for 15 minutes.');
+    } else {
+      const remaining = failure?.attempts_remaining;
+      setError(
+        remaining != null
+          ? `Incorrect PIN or account not found. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+          : 'Incorrect PIN or account not found'
+      );
+    }
     shake();
   };
 

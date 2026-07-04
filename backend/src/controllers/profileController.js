@@ -18,7 +18,9 @@ exports.getProfile = async (req, res, next) => {
 };
 
 exports.upsertProfile = async (req, res, next) => {
-  console.log('[profile] upsert → user_id:', req.user.id, '| phone:', req.user.phone);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[profile] upsert → user_id:', req.user.id);
+  }
   try {
     const { name, email } = req.body;
 

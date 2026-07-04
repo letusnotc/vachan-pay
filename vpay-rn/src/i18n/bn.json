@@ -46,17 +46,37 @@
     "to": "প্রাপক",
     "amount": "পরিমাণ",
     "confirm": "নিশ্চিত করুন",
+    "payNow": "এখনই পেমেন্ট করুন →",
     "cancel": "বাতিল করুন",
     "sending": "পাঠানো হচ্ছে...",
     "success": "₹{{amount}} {{name}}-কে পাঠানো হয়েছে!",
     "selectRecipient": "প্রাপক বেছে নিন",
     "receiverPhone": "প্রাপকের ফোন",
-    "amountLabel": "পরিমাণ (₹)"
+    "amountLabel": "পরিমাণ (₹)",
+    "securedByStripe": "Stripe দ্বারা সুরক্ষিত পেমেন্ট"
   },
   "balance": {
     "title": "আপনার ব্যালেন্স",
     "available": "পাওয়া যাচ্ছে ব্যালেন্স",
     "addMoney": "টাকা যোগ করুন"
+  },
+  "addMoney": {
+    "title": "টাকা যোগ করুন",
+    "currentBalance": "বর্তমান ব্যালেন্স",
+    "enterAmount": "পরিমাণ লিখুন (₹)",
+    "limitNote": "সর্বনিম্ন ₹৫০ · সর্বোচ্চ ₹১,০০,০০০ প্রতি লেনদেন",
+    "quickAmounts": "দ্রুত পরিমাণ",
+    "invalidTitle": "অবৈধ পরিমাণ",
+    "invalidBody": "₹৫০ থেকে ₹১,০০,০০০ এর মধ্যে একটি পরিমাণ লিখুন",
+    "securedByStripe": "🔒  Stripe দ্বারা সুরক্ষিত  ·  ২৫৬-বিট SSL",
+    "addButton": "টাকা যোগ করুন",
+    "addButtonAmount": "₹{{amount}} যোগ করুন →",
+    "tryAgain": "আবার চেষ্টা করুন",
+    "disclaimer": "আপনার VPay ওয়ালেটে যোগ করা টাকা শুধুমাত্র VPay নেটওয়ার্কের মধ্যে পেমেন্টের জন্য ব্যবহার করা যাবে। আপনার কার্ডের বিবরণ কখনো VPay সার্ভারে সংরক্ষণ করা হয় না।",
+    "successTitle": "টাকা যোগ হয়েছে!",
+    "newBalance": "নতুন ব্যালেন্স: ₹{{amount}}",
+    "returningHint": "ওয়ালেটে ফিরে যাচ্ছি…",
+    "genericError": "পেমেন্ট ব্যর্থ হয়েছে। আবার চেষ্টা করুন।"
   },
   "history": {
     "title": "লেনদেন",

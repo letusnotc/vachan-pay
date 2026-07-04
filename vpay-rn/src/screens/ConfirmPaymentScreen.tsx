@@ -8,6 +8,7 @@ import { SafeAreaView }              from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp }                 from '@react-navigation/native';
 import { useTranslation }            from 'react-i18next';
+import { useStripe }                 from '@stripe/stripe-react-native';
 import * as Speech                   from 'expo-speech';
 
 import { api }            from '../lib/api';
@@ -88,6 +89,7 @@ const sc = StyleSheet.create({
 export default function ConfirmPaymentScreen({ navigation, route }: Props) {
   const { t }        = useTranslation();
   const { language } = useStore();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const receiverName  = route.params?.receiverName  ?? '';
   const [receiverPhone, setReceiverPhone] = useState(route.params?.receiverPhone ?? '');
@@ -122,7 +124,50 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
 
     setLoading(true);
     try {
-      await api.post('/payment/transfer', { receiverPhone: phone, amount: parsed });
+      // ── Step 1: Ask backend to create a Stripe PaymentIntent ────────────
+      // Backend validates receiver exists, creates intent with both
+      // sender + receiver encoded in Stripe metadata.
+      // idempotencyKey prevents duplicate PaymentIntents if network retries
+      const idempotencyKey = `${parsed}-${Date.now()}`;
+      const { data } = await api.post('/stripe/create-transfer-intent', {
+        receiverPhone: phone,
+        amount:        parsed,
+        idempotencyKey,
+      });
+
+      const { clientSecret, paymentIntentId } = data;
+
+      // ── Step 2: Initialise the Stripe Payment Sheet ──────────────────────
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret:   clientSecret,
+        merchantDisplayName:         'VPay',
+        allowsDelayedPaymentMethods: false,
+        appearance: {
+          colors: { primary: C.primary, background: C.bg },
+        },
+      });
+
+      if (initError) throw new Error(initError.message);
+
+      // ── Step 3: Present Stripe UI — user enters card details ─────────────
+      const { error: presentError } = await presentPaymentSheet();
+
+      if (presentError) {
+        // User tapped the X / cancelled — go back to form silently
+        if (
+          presentError.code === 'Canceled' ||
+          (presentError.message ?? '').toLowerCase().includes('cancel')
+        ) {
+          setLoading(false);
+          return;
+        }
+        throw new Error(presentError.message);
+      }
+
+      // ── Step 4: Payment succeeded — tell backend to record the transaction
+      // Backend re-verifies with Stripe, then writes to the transactions table.
+      await api.post('/stripe/confirm-transfer', { paymentIntentId });
+
       setSuccess(true);
       Speech.speak(
         t('payment.success', { amount: parsed.toFixed(2), name: receiverName || phone }),
@@ -130,7 +175,8 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
       );
       setTimeout(() => navigation.navigate('Home'), 2800);
     } catch (err: any) {
-      Alert.alert(t('common.error'), err?.response?.data?.error || 'Payment failed');
+      const msg = err?.response?.data?.error || err?.message || t('addMoney.genericError');
+      Alert.alert(t('common.error'), msg);
     } finally {
       setLoading(false);
     }
@@ -228,9 +274,14 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
               </View>
             )}
 
+            {/* Stripe security note */}
+            <View style={s.secureNote}>
+              <Text style={s.secureText}>🔒  {t('payment.securedByStripe')}</Text>
+            </View>
+
             {/* Buttons */}
             <View style={s.btnRow}>
-              <TouchableOpacity style={s.cancelBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+              <TouchableOpacity style={s.cancelBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={loading}>
                 <Text style={s.cancelText}>{t('payment.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -241,7 +292,7 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
               >
                 {loading
                   ? <ActivityIndicator color="#fff" />
-                  : <Text style={s.confirmText}>{t('payment.confirm')}</Text>
+                  : <Text style={s.confirmText}>{t('payment.payNow')}</Text>
                 }
               </TouchableOpacity>
             </View>
@@ -275,6 +326,9 @@ const s = StyleSheet.create({
   fieldLabel:  { fontSize: 11, fontWeight: '700', color: C.textSub, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
   input:       { borderWidth: 1.5, borderColor: C.border, borderRadius: 12, backgroundColor: C.bg, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: C.text },
   inputFocused:{ borderColor: C.primary },
+
+  secureNote: { alignItems: 'center', marginBottom: 20 },
+  secureText: { fontSize: 12, color: C.textMuted, fontWeight: '500' },
 
   btnRow:      { flexDirection: 'row', gap: 12 },
   cancelBtn:   { flex: 1, borderWidth: 1.5, borderColor: C.border, borderRadius: 14, paddingVertical: 15, alignItems: 'center', backgroundColor: C.white },

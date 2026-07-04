@@ -14,12 +14,19 @@
       "bundleIdentifier": "com.vachanpay.app",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "VPay needs microphone access to process voice payment commands.",
-        "NSContactsUsageDescription": "VPay needs contacts access to find payment recipients."
+        "NSContactsUsageDescription": "VPay needs contacts access to find payment recipients.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSAllowsLocalNetworking": true
+        }
       }
     },
     "android": {
       "package": "com.vachanpay.app",
-      "permissions": ["RECORD_AUDIO", "READ_CONTACTS"],
+      "permissions": [
+        "RECORD_AUDIO",
+        "READ_CONTACTS"
+      ],
       "usesCleartextTraffic": true
     },
     "plugins": [
@@ -33,6 +40,25 @@
         "expo-contacts",
         {
           "contactsPermission": "VPay needs your contacts to find payment recipients."
+        }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.vpay",
+          "enableGooglePay": false
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "VPay uses Face ID to protect your stored sign-in PIN."
+        }
+      ],
+      [
+        "./plugins/withAndroidNetworkSecurityConfig",
+        {
+          "productionDomain": "api.vpay.in"
         }
       ]
     ]

@@ -1,6 +1,7 @@
 const axios    = require('axios');
 const FormData = require('form-data');
 const { replaceNumberWords } = require('../utils/numberWords');
+const { isRecognizedAudio }  = require('../utils/audioMagicBytes');
 
 const GROQ_WHISPER_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const GROQ_MODEL       = 'whisper-large-v3';
@@ -25,6 +26,12 @@ const SUPPORTED = new Set(Object.keys(PROMPTS));
 exports.transcribeAudio = async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No audio file uploaded' });
+
+    // M-3: multer's fileFilter only checked the client-supplied MIME type
+    // and filename, both attacker-controlled. Verify the actual bytes.
+    if (!isRecognizedAudio(req.file.buffer)) {
+      return res.status(400).json({ error: 'File does not match a supported audio format' });
+    }
 
     const lang = SUPPORTED.has(req.body.language) ? req.body.language : 'en';
 

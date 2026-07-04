@@ -46,17 +46,37 @@
     "to": "प्राप्तकर्ता",
     "amount": "रक्कम",
     "confirm": "निश्चित करा",
+    "payNow": "आता पैसे द्या →",
     "cancel": "रद्द करा",
     "sending": "पाठवत आहे...",
     "success": "₹{{amount}} {{name}} ला पाठवले!",
     "selectRecipient": "प्राप्तकर्ता निवडा",
     "receiverPhone": "प्राप्तकर्त्याचा फोन",
-    "amountLabel": "रक्कम (₹)"
+    "amountLabel": "रक्कम (₹)",
+    "securedByStripe": "पेमेंट Stripe द्वारे सुरक्षित"
   },
   "balance": {
     "title": "तुमची शिल्लक",
     "available": "उपलब्ध शिल्लक",
     "addMoney": "पैसे जोडा"
+  },
+  "addMoney": {
+    "title": "पैसे जोडा",
+    "currentBalance": "सध्याची शिल्लक",
+    "enterAmount": "रक्कम टाका (₹)",
+    "limitNote": "किमान ₹50 · कमाल ₹1,00,000 प्रति व्यवहार",
+    "quickAmounts": "जलद रक्कम",
+    "invalidTitle": "अवैध रक्कम",
+    "invalidBody": "₹50 ते ₹1,00,000 दरम्यान रक्कम टाका",
+    "securedByStripe": "🔒  Stripe द्वारे सुरक्षित  ·  256-बिट SSL",
+    "addButton": "पैसे जोडा",
+    "addButtonAmount": "₹{{amount}} जोडा →",
+    "tryAgain": "पुन्हा प्रयत्न करा",
+    "disclaimer": "तुमच्या VPay वॉलेटमध्ये जोडलेले पैसे फक्त VPay नेटवर्कमधील पेमेंटसाठी वापरले जाऊ शकतात. तुमचे कार्ड तपशील कधीही VPay सर्व्हरवर साठवले जात नाहीत.",
+    "successTitle": "पैसे जोडले!",
+    "newBalance": "नवीन शिल्लक: ₹{{amount}}",
+    "returningHint": "वॉलेटवर परत जात आहे…",
+    "genericError": "पेमेंट अयशस्वी झाले. कृपया पुन्हा प्रयत्न करा."
   },
   "history": {
     "title": "व्यवहार",

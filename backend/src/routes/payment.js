@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const Joi    = require('joi');
 const auth   = require('../middleware/auth');
-const { paymentLimiter } = require('../middleware/rateLimiter');
+const requestSigning = require('../middleware/requestSigning');
+const { paymentLimiter, userPaymentLimiter } = require('../middleware/rateLimiter');
 const { transfer, getHistory, lookupReceiver } = require('../controllers/paymentController');
 
 const validate = (schema) => (req, res, next) => {
@@ -15,12 +16,12 @@ const transferSchema = Joi.object({
     .pattern(/^\+[1-9]\d{7,14}$/)
     .required()
     .messages({ 'string.pattern.base': 'receiverPhone must be E.164 format (e.g. +919876543210)' }),
-  amount: Joi.number().positive().max(100_000).precision(2).required()
+  amount: Joi.number().min(1).max(100_000).precision(2).required()
 });
 
 router.use(auth);
 
-router.post('/transfer',       paymentLimiter, validate(transferSchema), transfer);
+router.post('/transfer',       paymentLimiter, userPaymentLimiter, requestSigning, validate(transferSchema), transfer);
 router.get('/history',         getHistory);
 router.get('/lookup/:phone',   lookupReceiver);
 

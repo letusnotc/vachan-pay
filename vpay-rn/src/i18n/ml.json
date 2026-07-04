@@ -46,17 +46,37 @@
     "to": "സ്വീകർത്താവ്",
     "amount": "തുക",
     "confirm": "സ്ഥിരീകരിക്കൂ",
+    "payNow": "ഇപ്പോൾ പണമടയ്ക്കൂ →",
     "cancel": "റദ്ദാക്കൂ",
     "sending": "അയക്കുന്നു...",
     "success": "₹{{amount}} {{name}}-ലേക്ക് അയച്ചു!",
     "selectRecipient": "സ്വീകർത്താവിനെ തിരഞ്ഞെടുക്കൂ",
     "receiverPhone": "സ്വീകർത്താവിന്‍റെ ഫോൺ",
-    "amountLabel": "തുക (₹)"
+    "amountLabel": "തുക (₹)",
+    "securedByStripe": "പണമടയ്ക്കൽ Stripe വഴി സുരക്ഷിതം"
   },
   "balance": {
     "title": "നിങ്ങളുടെ ബാലൻസ്",
     "available": "ലഭ്യമായ ബാലൻസ്",
     "addMoney": "പണം ചേർക്കൂ"
+  },
+  "addMoney": {
+    "title": "പണം ചേർക്കൂ",
+    "currentBalance": "നിലവിലെ ബാലൻസ്",
+    "enterAmount": "തുക നൽകൂ (₹)",
+    "limitNote": "കുറഞ്ഞത് ₹50 · കൂടിയത് ₹1,00,000 ഓരോ ഇടപാടിനും",
+    "quickAmounts": "പെട്ടെന്നുള്ള തുകകൾ",
+    "invalidTitle": "അസാധുവായ തുക",
+    "invalidBody": "₹50 മുതൽ ₹1,00,000 വരെയുള്ള തുക നൽകൂ",
+    "securedByStripe": "🔒  Stripe വഴി സുരക്ഷിതം  ·  256-ബിറ്റ് SSL",
+    "addButton": "പണം ചേർക്കൂ",
+    "addButtonAmount": "₹{{amount}} ചേർക്കൂ →",
+    "tryAgain": "വീണ്ടും ശ്രമിക്കൂ",
+    "disclaimer": "നിങ്ങളുടെ VPay വാലറ്റിലേക്ക് ചേർത്ത പണം VPay നെറ്റ്‌വർക്കിനുള്ളിലെ പേമെൻ്റുകൾക്ക് മാത്രം ഉപയോഗിക്കാം. നിങ്ങളുടെ കാർഡ് വിവരങ്ങൾ VPay സെർവറുകളിൽ ഒരിക്കലും സൂക്ഷിക്കില്ല.",
+    "successTitle": "പണം ചേർത്തു!",
+    "newBalance": "പുതിയ ബാലൻസ്: ₹{{amount}}",
+    "returningHint": "വാലറ്റിലേക്ക് മടങ്ങുന്നു…",
+    "genericError": "പണമടയ്ക്കൽ പരാജയപ്പെട്ടു. വീണ്ടും ശ്രമിക്കൂ."
   },
   "history": {
     "title": "ഇടപാടുകൾ",

@@ -6,6 +6,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Easing, AppState } 
 import { NavigationContainer }        from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider }           from 'react-native-safe-area-context';
+import { StripeProvider }             from '@stripe/stripe-react-native';
 
 import { supabase }   from './src/lib/supabase';
 import { api }        from './src/lib/api';
@@ -23,6 +24,10 @@ import ConfirmPaymentScreen from './src/screens/ConfirmPaymentScreen';
 import BalanceScreen        from './src/screens/BalanceScreen';
 import HistoryScreen        from './src/screens/HistoryScreen';
 import ProfileScreen        from './src/screens/ProfileScreen';
+import AddMoneyScreen       from './src/screens/AddMoneyScreen';
+
+// Stripe publishable key — safe to bundle in the client
+const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
 export type RootStackParamList = {
   Landing:        undefined;
@@ -35,6 +40,7 @@ export type RootStackParamList = {
   Balance:        undefined;
   History:        undefined;
   Profile:        undefined;
+  AddMoney:       undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -129,8 +135,9 @@ export default function App() {
     try {
       const r = await api.get('/profile');
       const raw = r.data.profile;
-      // Treat null/undefined onboarding_completed as true (pre-migration safety)
-      setProfile({ ...raw, onboarding_completed: raw.onboarding_completed ?? true });
+      // Treat null/undefined onboarding_completed as false — never grant
+      // access to a fully-set-up account state on missing/ambiguous data.
+      setProfile({ ...raw, onboarding_completed: raw.onboarding_completed ?? false });
     } catch (err: any) {
       if (err.response?.status === 404) {
         setProfile(null);
@@ -150,7 +157,6 @@ export default function App() {
     return (
       <View style={bd.root}>
         <Text style={bd.title}>Cannot reach backend</Text>
-        <Text style={bd.url}>{process.env.EXPO_PUBLIC_API_URL}</Text>
         <TouchableOpacity style={bd.btn} onPress={fetchProfile}>
           <Text style={bd.btnText}>Retry</Text>
         </TouchableOpacity>
@@ -174,38 +180,41 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false, animation: 'ios_from_right' }}>
+      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier="merchant.com.vpay">
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false, animation: 'ios_from_right' }}>
 
-          {!session ? (
-            /* ── Unauthenticated ── */
-            <>
-              <Stack.Screen name="Landing"  component={LandingScreen} />
-              <Stack.Screen name="SignIn"   component={SignInScreen} />
-              <Stack.Screen name="SignUp"   component={SignUpScreen} />
-            </>
+            {!session ? (
+              /* ── Unauthenticated ── */
+              <>
+                <Stack.Screen name="Landing"  component={LandingScreen} />
+                <Stack.Screen name="SignIn"   component={SignInScreen} />
+                <Stack.Screen name="SignUp"   component={SignUpScreen} />
+              </>
 
-          ) : !profile ? (
-            /* ── Authenticated but no profile yet ── */
-            <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+            ) : !profile ? (
+              /* ── Authenticated but no profile yet ── */
+              <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
 
-          ) : !profile.onboarding_completed ? (
-            /* ── Profile exists but onboarding not done ── */
-            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            ) : !profile.onboarding_completed ? (
+              /* ── Profile exists but onboarding not done ── */
+              <Stack.Screen name="Onboarding" component={OnboardingScreen} />
 
-          ) : (
-            /* ── Fully set up ── */
-            <>
-              <Stack.Screen name="Home"           component={HomeScreen} />
-              <Stack.Screen name="ConfirmPayment" component={ConfirmPaymentScreen} />
-              <Stack.Screen name="Balance"        component={BalanceScreen} />
-              <Stack.Screen name="History"        component={HistoryScreen} />
-              <Stack.Screen name="Profile"        component={ProfileScreen} />
-            </>
-          )}
+            ) : (
+              /* ── Fully set up ── */
+              <>
+                <Stack.Screen name="Home"           component={HomeScreen} />
+                <Stack.Screen name="ConfirmPayment" component={ConfirmPaymentScreen} />
+                <Stack.Screen name="Balance"        component={BalanceScreen} />
+                <Stack.Screen name="History"        component={HistoryScreen} />
+                <Stack.Screen name="Profile"        component={ProfileScreen} />
+                <Stack.Screen name="AddMoney"       component={AddMoneyScreen} />
+              </>
+            )}
 
-        </Stack.Navigator>
-      </NavigationContainer>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </StripeProvider>
     </SafeAreaProvider>
   );
 }

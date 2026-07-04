@@ -46,17 +46,37 @@
     "to": "પ્રાપ્તકર્તા",
     "amount": "રકમ",
     "confirm": "પુષ્ટ કરો",
+    "payNow": "હમણાં ચૂકવો →",
     "cancel": "રદ કરો",
     "sending": "મોકલી રહ્યા છીએ...",
     "success": "₹{{amount}} {{name}} ને મોકલ્યા!",
     "selectRecipient": "પ્રાપ્તકર્તા પસંદ કરો",
     "receiverPhone": "પ્રાપ્તકર્તાનો ફોન",
-    "amountLabel": "રકમ (₹)"
+    "amountLabel": "રકમ (₹)",
+    "securedByStripe": "ચુકવણી Stripe દ્વારા સુરક્ષિત"
   },
   "balance": {
     "title": "તમારું બૅલેન્સ",
     "available": "ઉપલબ્ધ બૅલેન્સ",
     "addMoney": "પૈસા ઉમેરો"
+  },
+  "addMoney": {
+    "title": "પૈસા ઉમેરો",
+    "currentBalance": "વર્તમાન બૅલેન્સ",
+    "enterAmount": "રકમ દાખલ કરો (₹)",
+    "limitNote": "ન્યૂનતમ ₹50 · મહત્તમ ₹1,00,000 પ્રતિ વ્યવહાર",
+    "quickAmounts": "ઝડપી રકમો",
+    "invalidTitle": "અમાન્ય રકમ",
+    "invalidBody": "₹50 થી ₹1,00,000 વચ્ચેની રકમ દાખલ કરો",
+    "securedByStripe": "🔒  Stripe દ્વારા સુરક્ષિત  ·  256-બિટ SSL",
+    "addButton": "પૈસા ઉમેરો",
+    "addButtonAmount": "₹{{amount}} ઉમેરો →",
+    "tryAgain": "ફરી પ્રયત્ન કરો",
+    "disclaimer": "તમારા VPay વૉલેટમાં ઉમેરેલા પૈસા ફક્ત VPay નેટવર્કની અંદર ચુકવણી માટે વાપરી શકાય છે. તમારી કાર્ડ વિગતો ક્યારેય VPay સર્વર પર સંગ્રહિત થતી નથી.",
+    "successTitle": "પૈસા ઉમેરાયા!",
+    "newBalance": "નવું બૅલેન્સ: ₹{{amount}}",
+    "returningHint": "વૉલેટ પર પાછા જઈ રહ્યા છીએ…",
+    "genericError": "ચુકવણી નિષ્ફળ થઈ. કૃપા કરી ફરી પ્રયત્ન કરો."
   },
   "history": {
     "title": "વ્યવહારો",

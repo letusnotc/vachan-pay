@@ -111,7 +111,7 @@ export default function BalanceScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={s.addBtn}
-          onPress={() => Alert.alert('Coming soon', 'Add money feature coming soon!')}
+          onPress={() => navigation.navigate('AddMoney')}
           activeOpacity={0.88}
         >
           <Text style={s.addBtnText}>{t('balance.addMoney')}</Text>
