@@ -1,5 +1,7 @@
 # Python Speech Recognition
 
+> **Status: Held out / research phase.** Not integrated into the VPay app. This is a standalone research exploration, currently paused, kept in the repo for reference only.
+
 A collection of Python scripts demonstrating speech-to-text using the Google Speech Recognition API, covering three input scenarios: live microphone, short audio files, and long audio files.
 
 ## Scripts

@@ -1,5 +1,7 @@
 # Voice Authentication CNN
 
+> **Status: Held out / research phase.** Not integrated into the VPay app. This is a standalone research exploration, currently paused, kept in the repo for reference only.
+
 Speaker verification system using a pre-trained Convolutional Neural Network. Enrolls users by extracting voice embeddings from audio and authenticates by comparing new audio against stored embeddings via cosine distance.
 
 ## How It Works
