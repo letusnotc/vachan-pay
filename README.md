@@ -1,6 +1,6 @@
 # VPay — Voice-First UPI Payments
 
-Say "Rahul ko pachaas rupaye bhejo" and the money moves. VPay is a full-stack voice payment app for India — React Native front-end, Node.js back-end, Supabase database, Groq Whisper for transcription, and Gemma 4 for intent parsing.
+Say "Rahul ko pachaas rupaye bhejo" and the money moves. VPay is a full-stack voice payment app for India — React Native front-end, Node.js back-end, Supabase database, Groq Whisper for transcription, Gemma 4 for intent parsing, and Stripe for card payments. Supports 10 Indian languages and biometric sign-in.
 
 ## Repository Structure
 
@@ -8,9 +8,19 @@ Say "Rahul ko pachaas rupaye bhejo" and the money moves. VPay is a full-stack vo
 vachan-pay/
 ├── backend/                      # Express.js REST API
 ├── vpay-rn/                      # React Native + Expo app
+├── SECURITY.md                   # Security audit, fixes applied, what's still outstanding
 ├── Python-Speech-Recognition-/   # Voice auth experiments (standalone)
 └── Voice-Authentication-CNN/     # CNN voice auth model (standalone)
 ```
+
+---
+
+## What's in the app
+
+- **Voice payments** — hold the mic, speak a payment command in English, Hindi, Bengali, Telugu, Marathi, Tamil, Gujarati, Kannada, Malayalam, or Punjabi
+- **PIN + biometric sign-in** — no SMS/OTP; a 6-digit PIN doubles as your password, with optional Face ID/fingerprint unlock and a 15-minute lockout after 5 failed attempts
+- **Real card payments via Stripe** — top up your wallet, or send money to another VPay user, both via Stripe's native Payment Sheet
+- **Security hardened** — see `SECURITY.md` for the full audit: encrypted session/PIN storage, HMAC-signed payment requests, rate limiting, prompt-injection defenses on the AI layer, and more
 
 ---
 
@@ -23,14 +33,14 @@ vachan-pay/
 | Expo Go | Latest | Install on your Android/iOS phone |
 | Git | Any | For cloning |
 
-**API Keys required (all free tier):**
+**API keys / accounts required:**
 
-| Key | Where to get |
-|-----|-------------|
-| Supabase URL + Service Role Key | supabase.com → Project Settings → API |
-| Supabase Anon Key | supabase.com → Project Settings → API |
-| Groq API Key | console.groq.com/keys |
-| Google AI API Key | aistudio.google.com/apikey |
+| Key | Where to get | Cost |
+|-----|-------------|------|
+| Supabase URL + Service Role Key + Anon Key | supabase.com → Project Settings → API | Free tier |
+| Groq API Key | console.groq.com/keys | Free tier |
+| Google AI API Key | aistudio.google.com/apikey | Free tier |
+| Stripe API keys (test mode) | dashboard.stripe.com/apikeys | Free, no card required |
 
 ---
 
@@ -47,19 +57,18 @@ cd vachan-pay
 
 1. Go to [supabase.com](https://supabase.com) and create a free project
 2. Wait for the project to be ready (~1 min)
-3. Note your **Project URL** and both API keys (Anon + Service Role) from  
+3. Note your **Project URL** and both API keys (Anon + Service Role) from
    **Settings → API**
 
-### 3. Apply the database schema
+### 3. Apply the database migrations
 
-In **Supabase Dashboard → SQL Editor**, paste and run the contents of `backend/supabase_schema.sql`.
+In **Supabase Dashboard → SQL Editor**, run these three files **in order** (all idempotent — safe to re-run):
 
-This creates:
-- `profiles` table (users + wallet balance)
-- `transactions` table (payment history)
-- `transfer_payment()` stored procedure (atomic debit/credit)
-- RLS policies
-- Service-role grants
+1. `backend/supabase_schema.sql` — core schema: `profiles`, `transactions`, `transfer_payment()` RPC, RLS policies
+2. `backend/stripe_migration.sql` — Stripe columns/tables, `credit_wallet_topup()` and `credit_p2p_card_transfer()` RPCs
+3. `backend/security_migration.sql` — idempotency keys, PIN lockout tracking, per-user lookup rate limiting
+
+See `backend/README.md` for what each one creates in detail.
 
 ### 4. Disable email confirmation (required for PIN auth)
 
@@ -74,22 +83,7 @@ cd backend
 cp .env.example .env
 ```
 
-Open `.env` and fill in:
-
-```env
-PORT=3000
-NODE_ENV=development
-
-SUPABASE_URL=https://<your-project-ref>.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
-
-GROQ_API_KEY=gsk_...
-GEMINI_API_KEY=AIza...
-
-# Your machine's LAN IP — run ipconfig (Windows) or ifconfig (Mac/Linux)
-# Include the Expo Go origin so the app can call the API
-ALLOWED_ORIGINS=http://localhost:3000,exp://<your-LAN-IP>:8081,http://<your-LAN-IP>:8081
-```
+Fill in `.env` — Supabase URL/keys, Groq key, Gemini key, `ALLOWED_ORIGINS`, Stripe secret + webhook keys, and a generated `APP_SIGNING_SECRET` (used for HMAC request signing — see `backend/README.md` for the exact command and full variable reference).
 
 Then install and start:
 
@@ -111,15 +105,7 @@ cd vpay-rn
 cp .env.example .env
 ```
 
-Open `.env` and fill in:
-
-```env
-EXPO_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-
-# Must be your LAN IP — localhost won't work on a physical phone
-EXPO_PUBLIC_API_URL=http://<your-LAN-IP>:3000/api
-```
+Fill in `.env` — Supabase URL/anon key, your backend's LAN IP as `EXPO_PUBLIC_API_URL`, Stripe publishable key, and the same `EXPO_PUBLIC_APP_SIGNING_SECRET` you generated for the backend (must match exactly). See `vpay-rn/README.md` for the full reference.
 
 Then install and start:
 
@@ -139,7 +125,9 @@ Scan the QR code with **Expo Go** on your phone.
 1. Enter your 10-digit Indian mobile number
 2. Enter a 6-digit PIN — this becomes your permanent password
 3. Set up your display name
-4. You're in — tap the mic and speak a payment command
+4. You're in — tap the mic and speak a payment command, or use "Add Money" to top up your wallet with a test card
+
+**Test card for Stripe (test mode):** `4000 0035 6000 0008` (always succeeds) · `4000 0000 0000 9995` (always declines)
 
 **Example voice commands:**
 - "Rahul ko pachaas rupaye bhejo" → sends ₹50 to Rahul
@@ -156,6 +144,12 @@ You need **two terminals** running simultaneously:
 |----------|-----------|---------|
 | Backend | `backend/` | `npm run dev` |
 | Frontend | `vpay-rn/` | `npx expo start --tunnel` |
+
+If you're testing Stripe webhook reconciliation locally, a third terminal:
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
 
 ---
 
@@ -187,7 +181,7 @@ Check your phone's Wi-Fi settings — it must be on the same network as your lap
 
 **Step 4 — Test connectivity from the phone**
 
-Open a browser on your phone and go to `http://<your-LAN-IP>:3000/health`.  
+Open a browser on your phone and go to `http://<your-LAN-IP>:3000/health`.
 You should see `{"status":"ok"}`. If it times out, the firewall rule didn't apply — re-run Step 2 as Administrator.
 
 **When to use `--tunnel` vs LAN**
@@ -211,6 +205,12 @@ You should see `{"status":"ok"}`. If it times out, the firewall rule didn't appl
 **"permission denied for table profiles"**
 - The GRANT statements at the bottom of `supabase_schema.sql` weren't run → re-run just those lines in the SQL editor
 
+**Stripe payment sheet won't open / "invalid API key"**
+- Check `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` (frontend) and `STRIPE_SECRET_KEY` (backend) are both set and from the **same** Stripe account/mode (both test, or both live — never mixed)
+
+**"Invalid request signature" on payment/Stripe calls**
+- `APP_SIGNING_SECRET` (backend) and `EXPO_PUBLIC_APP_SIGNING_SECRET` (frontend) must match exactly
+
 **"Project is incompatible with this version of Expo Go"**
 - Your Expo Go app is a different SDK version → run `npx expo install --fix -- --legacy-peer-deps` and restart Metro
 
@@ -226,12 +226,21 @@ You should see `{"status":"ok"}`. If it times out, the firewall rule didn't appl
 
 ```
 Phone (Expo Go)
-  │  Supabase Auth (PIN login)
-  │  Axios + JWT
+  │  Supabase Auth (PIN + biometric login) — session in SecureStore
+  │  Axios + JWT + HMAC signature (money-moving routes)
   ▼
 Express API  (192.168.1.x:3000)
   ├── /api/whisper/transcribe  → Groq whisper-large-v3
-  ├── /api/ai/analyze-*        → Google AI gemma-4-26b-a4b-it
+  ├── /api/ai/analyze-*        → Google AI gemma-4-26b-a4b-it (10 languages)
   ├── /api/profile             → Supabase PostgreSQL
-  └── /api/payment/transfer    → atomic stored procedure
+  ├── /api/payment/transfer    → atomic wallet-to-wallet stored procedure
+  └── /api/stripe/*            → Stripe PaymentIntents (top-up + P2P card charges)
 ```
+
+## Security
+
+This project has been through a full security audit and hardening pass. See **`SECURITY.md`** for:
+- Every finding (critical/high/medium/low), what was fixed, and how it was verified
+- What's still outstanding — a short list of things that need a human (credential rotation, buying a production domain, etc.), not more code
+- The network security plan (HTTPS enforcement, Android/iOS TLS config, HMAC request signing)
+- Data encryption status — what's encrypted at rest and in transit, and what isn't yet
