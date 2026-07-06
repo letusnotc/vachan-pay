@@ -9,6 +9,7 @@ const whisperRoutes = require('./routes/whisper');
 const profileRoutes = require('./routes/profile');
 const paymentRoutes = require('./routes/payment');
 const stripeRoutes  = require('./routes/stripe');
+const callRiskRoutes = require('./routes/callRisk');
 const errorHandler   = require('./middleware/errorHandler');
 const requestSigning  = require('./middleware/requestSigning');
 const { generalLimiter } = require('./middleware/rateLimiter');
@@ -67,6 +68,7 @@ app.use('/api/whisper', whisperRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/stripe',  stripeRoutes);
+app.use('/api/risk',    callRiskRoutes);
 
 // --- 404 ---
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));

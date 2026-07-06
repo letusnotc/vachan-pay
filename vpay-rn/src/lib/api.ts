@@ -13,6 +13,7 @@ const SIGNED_PATHS = [
   '/stripe/confirm-topup',
   '/stripe/create-transfer-intent',
   '/stripe/confirm-transfer',
+  '/risk/event',
 ];
 
 export const api = axios.create({

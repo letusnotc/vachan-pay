@@ -13,6 +13,9 @@ import { api }        from './src/lib/api';
 import { useStore }   from './src/store/store';
 import { C }          from './src/theme';
 
+import { isMicBusy }        from './src/utils/micProbe';
+import { logRiskEvent }      from './src/lib/riskLog';
+import CallWarningModal      from './src/components/CallWarningModal';
 import LockScreen           from './src/components/LockScreen';
 import LandingScreen        from './src/screens/LandingScreen';
 import SignInScreen         from './src/screens/SignInScreen';
@@ -98,18 +101,40 @@ export default function App() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [backendDown,    setBackendDown]    = useState(false);
   const [locked,         setLocked]         = useState(false);
+  const [callWarn,       setCallWarn]       = useState(false); // "you may be on a call" warning
 
   const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   const lastActiveRef = useRef<number>(Date.now());
 
-  // Lock on background → foreground if idle > 5 min
+  const isLoggedIn = !!session && !!profile?.onboarding_completed;
+
+  // Best-effort: warn a logged-in user if the mic looks busy (they may be on a
+  // call). Runs on app open and each time the app returns to the foreground —
+  // so it catches both "already on a call" and "a call started while the app
+  // was in the background". Never blocks; a probe error is silently ignored.
+  const checkMicOnce = async () => {
+    try {
+      const { busy, peakDb } = await isMicBusy();
+      if (busy) {
+        setCallWarn(true);
+        logRiskEvent({ eventType: 'proactive_warning', outcome: 'shown', micPeakDb: peakDb });
+      }
+    } catch {}
+  };
+
+  // On cold open / login
+  useEffect(() => {
+    if (isLoggedIn) checkMicOnce();
+  }, [isLoggedIn]);
+
+  // Lock on background → foreground if idle > 5 min; also re-check the mic
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
-        const isLoggedIn = !!session && !!profile?.onboarding_completed;
         if (isLoggedIn && Date.now() - lastActiveRef.current > IDLE_TIMEOUT) {
           setLocked(true);
         }
+        if (isLoggedIn) checkMicOnce();
       } else {
         lastActiveRef.current = Date.now();
       }
@@ -180,6 +205,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <CallWarningModal
+        visible={callWarn}
+        confirmLabel="I understand"
+        onConfirm={() => setCallWarn(false)}
+        onCancel={() => setCallWarn(false)}
+      />
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY} merchantIdentifier="merchant.com.vpay">
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false, animation: 'ios_from_right' }}>

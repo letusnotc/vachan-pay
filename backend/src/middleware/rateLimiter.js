@@ -62,8 +62,11 @@ setInterval(() => {
 const userPaymentLimiter = makeUserLimiter(5, 15 * 60 * 1000, 'Too many transfer attempts — wait 15 minutes and try again');
 // Match the existing per-IP AI cap, but per-user too
 const userAiLimiter      = makeUserLimiter(15, 60 * 1000, 'Too many AI requests — wait 1 minute and try again');
+// Call-risk audit events fire at most a handful of times per session; 20/min
+// per user is generous while still blunting any attempt to flood the log.
+const userEventLimiter   = makeUserLimiter(20, 60 * 1000, 'Too many events — slow down');
 
 module.exports = {
   whisperLimiter, aiLimiter, paymentLimiter, stripeLimiter, generalLimiter,
-  userPaymentLimiter, userAiLimiter,
+  userPaymentLimiter, userAiLimiter, userEventLimiter,
 };

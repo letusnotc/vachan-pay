@@ -15,6 +15,9 @@ import { api }            from '../lib/api';
 import { useStore }       from '../store/store';
 import { getTTSLocale }   from '../i18n/languages';
 import { normalizePhone } from '../utils/phone';
+import { isMicBusy }      from '../utils/micProbe';
+import { logRiskEvent }   from '../lib/riskLog';
+import CallWarningModal   from '../components/CallWarningModal';
 import { RootStackParamList } from '../../App';
 import { C, shadow }      from '../theme';
 
@@ -99,6 +102,7 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
   const [focused,       setFocused]       = useState<string | null>(null);
   const [editingAmount, setEditingAmount] = useState(false);
   const [draftAmount,   setDraftAmount]   = useState(amount);
+  const [callWarn,      setCallWarn]      = useState(false); // "you may be on a call" safety modal
 
   const mountAnim = useRef(new Animated.Value(0)).current;
 
@@ -115,12 +119,43 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
     return () => { Speech.stop(); };
   }, []);
 
+  // Validate the form, then — right before money moves — probe whether the mic
+  // looks busy (i.e. the user may be on a call). If so, pause and make them
+  // confirm they trust the recipient before proceeding.
   const handleConfirm = async () => {
     const phone  = normalizePhone(receiverPhone);
     const parsed = parseFloat(amount);
     if (!phone) { Alert.alert(t('common.error'), 'Enter recipient phone'); return; }
     if (!/^\+[1-9]\d{7,14}$/.test(phone)) { Alert.alert(t('common.error'), 'Invalid phone — use 10-digit Indian number'); return; }
     if (isNaN(parsed) || parsed <= 0) { Alert.alert(t('common.error'), 'Enter a valid amount'); return; }
+
+    setLoading(true);
+    // Best-effort "are you on a call?" check. Never let a probe error block a
+    // legitimate payment — on failure we just proceed.
+    try {
+      const { busy, peakDb } = await isMicBusy();
+      if (busy) {
+        setLoading(false);
+        // Record that we warned the user at payment time (evidence trail).
+        logRiskEvent({
+          eventType:     'payment_warning',
+          outcome:       'shown',
+          micPeakDb:     peakDb,
+          receiverPhone: phone,
+          amount:        parsed,
+        });
+        setCallWarn(true); // user resolves via CallWarningModal → runPayment() or cancel
+        return;
+      }
+    } catch {}
+    await runPayment();
+  };
+
+  // The actual Stripe payment flow, split out so the call-warning modal can
+  // invoke it directly once the user chooses to continue.
+  const runPayment = async () => {
+    const phone  = normalizePhone(receiverPhone);
+    const parsed = parseFloat(amount);
 
     setLoading(true);
     try {
@@ -194,6 +229,29 @@ export default function ConfirmPaymentScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={s.safe}>
+      <CallWarningModal
+        visible={callWarn}
+        confirmLabel="I trust them — pay"
+        onConfirm={() => {
+          setCallWarn(false);
+          logRiskEvent({
+            eventType:     'payment_warning',
+            outcome:       'proceeded',
+            receiverPhone: normalizePhone(receiverPhone),
+            amount:        parseFloat(amount),
+          });
+          runPayment();
+        }}
+        onCancel={() => {
+          setCallWarn(false);
+          logRiskEvent({
+            eventType:     'payment_warning',
+            outcome:       'cancelled',
+            receiverPhone: normalizePhone(receiverPhone),
+            amount:        parseFloat(amount),
+          });
+        }}
+      />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
